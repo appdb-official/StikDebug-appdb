@@ -4,8 +4,8 @@
    
 
 <div align="center">
-  <h1><b>StikDebug</b></h1>
-  <p><i> An on-device debugger/JIT enabler for iOS versions 17.4+ (excluding iOS 18.4 beta 1), powered by <a href="https://github.com/jkcoxson/idevice">idevice.</a> </i></p>
+  <h1><b>StikDebug-appdb</b></h1>
+  <p><i> An on-device debugger/JIT enabler for iOS versions 17.4+ (excluding iOS 18.4 beta 1), powered by <a href="https://github.com/jkcoxson/idevice">idevice.</a>, modified by appdb for easy integration </i></p>
 </div>
 <h6 align="center">
 
@@ -14,17 +14,13 @@
 | **Home Screen** | **Apps List** | **Settings** | **JIT Under 10 Seconds** |
 <h6 align="center">
 
-  <a href="https://discord.gg/ZnNcrRT3M8">
-    <img src="https://img.shields.io/badge/Discord-join%20us-7289DA?logo=discord&logoColor=white&style=for-the-badge&labelColor=23272A" />
-  </a>
-  <a href="https://github.com/0-Blu/StikDebug/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/0-Blu/StikJIT?label=License&color=5865F2&style=for-the-badge&labelColor=23272A" />
-  </a>
-  </a>
-  <a href="https://github.com/0-Blu/StikDebug/stargazers">
-    <img src="https://img.shields.io/github/stars/0-Blu/StikJIT?label=Stars&color=FEE75C&style=for-the-badge&labelColor=23272A" />
-  </a>
-  <br />
+  <a href="https://appdb.to/details/45a698af5360560fd8a522a8ebbc634da8f55df4">
+  <img
+    title="Get from appdb"
+    src="https://s3cdn.dbservices.to/official_buttons/get_white.png"
+    width="100"
+  />
+</a>
 </h6>
 
 ## Features  
@@ -34,4 +30,4 @@
 - No data collection—ensuring full privacy. 
 
 ## License  
-StikDebug is licensed under **AGPL-3.0**. See [`LICENSE`](LICENSE) for details.  
+StikDebug-appdb is licensed under **AGPL-3.0**. See [`LICENSE`](LICENSE) for details.  
