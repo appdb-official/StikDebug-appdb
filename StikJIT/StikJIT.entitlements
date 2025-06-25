@@ -12,7 +12,7 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.stik.sj</string>
+		<string>group.to.appdb.jit-ios</string>
 	</array>
 	<key>com.apple.security.files.user-selected.read-only</key>
 	<true/>
