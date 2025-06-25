@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/appdb-official/AppdbSDK",
       "state" : {
-        "revision" : "e0501b5b97df0f2ceba3104e091e28dbf5275e52",
-        "version" : "1.4.0"
+        "revision" : "ea0db9c9b91cc605698ede361bf00aa0e127b961",
+        "version" : "1.6.2"
       }
     }
   ],

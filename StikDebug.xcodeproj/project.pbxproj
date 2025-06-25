@@ -1036,7 +1036,7 @@
 					"$(PROJECT_DIR)/StikJIT/idevice",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.1;
-				MARKETING_VERSION = 1.3.7b;
+				MARKETING_VERSION = 1.3.7c;
 				PRODUCT_BUNDLE_IDENTIFIER = "to.appdb.jit-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
@@ -1086,7 +1086,7 @@
 					"$(PROJECT_DIR)/StikJIT/idevice",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.1;
-				MARKETING_VERSION = 1.3.7b;
+				MARKETING_VERSION = 1.3.7c;
 				PRODUCT_BUNDLE_IDENTIFIER = "to.appdb.jit-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
@@ -1337,8 +1337,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/appdb-official/AppdbSDK";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.4.0;
+				kind = exactVersion;
+				version = 1.6.2;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
