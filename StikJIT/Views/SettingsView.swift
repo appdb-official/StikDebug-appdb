@@ -3,10 +3,10 @@
 //
 //  Created by Stephen on 3/27/25.
 
-import SwiftUI
-import UniformTypeIdentifiers
-import UIKit
 import AppdbSDK
+import SwiftUI
+import UIKit
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @AppStorage("username") private var username = "User"
@@ -25,21 +25,22 @@ struct SettingsView: View {
     @State private var importProgress: Float = 0.0
     @State private var is_lc = false
     @State private var showColorPickerPopup = false
-    
+
     @StateObject private var mountProg = MountingProgress.shared
-    
+
     @State private var mounted = false
-    
+
     @State private var showingConsoleLogsView = false
     @State private var showingDisplayView = false
-    
+
     // Add state variables for appdb import
     @State private var isImportingFromAppdb = false
     @State private var showAppdbErrorAlert = false
     @State private var appdbErrorMessage = ""
-    
+
     private var appVersion: String {
-        let marketingVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let marketingVersion =
+            Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         return marketingVersion
     }
 
@@ -52,7 +53,7 @@ struct SettingsView: View {
         "Neo": "https://github.com/neoarz.png",
         "Se2crid": "https://github.com/Se2crid.png",
         "Huge_Black": "https://github.com/HugeBlack.png",
-        "Wynwxst": "https://github.com/Wynwxst.png"
+        "Wynwxst": "https://github.com/Wynwxst.png",
     ]
 
     private var accentColor: Color {
@@ -67,7 +68,7 @@ struct SettingsView: View {
         ZStack {
             Color(UIColor.systemBackground)
                 .ignoresSafeArea()
-            
+
             ScrollView {
                 VStack(spacing: 12) {
                     // App Logo and Username Section
@@ -84,17 +85,17 @@ struct SettingsView: View {
                                 )
                         }
                         .padding(.top, 16)
-                        
-                        Text("StikDebug")
+
+                        Text("StikDebug-appdb")
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
                     }
-                    
+
                     Divider()
                         .padding(.horizontal, 16)
                         .opacity(0.6)
-                    
+
                     // Appearance section
                     SettingsCard {
                         VStack(alignment: .leading, spacing: 20) {
@@ -102,7 +103,7 @@ struct SettingsView: View {
                                 .font(.headline)
                                 .foregroundColor(.primary)
                                 .padding(.bottom, 4)
-                            
+
                             VStack(spacing: 6) {
                                 Button(action: {
                                     showingDisplayView = true
@@ -125,7 +126,7 @@ struct SettingsView: View {
                         .padding(.vertical, 20)
                         .padding(.horizontal, 16)
                     }
-                    
+
                     // Pairing File section
                     SettingsCard {
                         VStack(alignment: .leading, spacing: 20) {
@@ -133,7 +134,7 @@ struct SettingsView: View {
                                 .font(.headline)
                                 .foregroundColor(.primary)
                                 .padding(.bottom, 4)
-                            
+
                             // Add "Import from appdb" button
                             Button {
                                 importFromAppdb()
@@ -151,7 +152,7 @@ struct SettingsView: View {
                                 .cornerRadius(12)
                             }
                             .disabled(isImportingFromAppdb)
-                            
+
                             Button {
                                 isShowingPairingFilePicker = true
                             } label: {
@@ -167,7 +168,7 @@ struct SettingsView: View {
                                 .background(accentColor)
                                 .cornerRadius(12)
                             }
-                            
+
                             if isImportingFile {
                                 VStack(spacing: 10) {
                                     HStack {
@@ -179,24 +180,28 @@ struct SettingsView: View {
                                             .font(.system(.caption, design: .rounded))
                                             .foregroundColor(.secondary)
                                     }
-                                    
+
                                     GeometryReader { geometry in
                                         ZStack(alignment: .leading) {
                                             RoundedRectangle(cornerRadius: 6)
                                                 .fill(Color(UIColor.tertiarySystemFill))
                                                 .frame(height: 10)
-                                            
+
                                             RoundedRectangle(cornerRadius: 6)
                                                 .fill(Color.green)
-                                                .frame(width: geometry.size.width * CGFloat(importProgress), height: 10)
-                                                .animation(.linear(duration: 0.3), value: importProgress)
+                                                .frame(
+                                                    width: geometry.size.width
+                                                        * CGFloat(importProgress), height: 10
+                                                )
+                                                .animation(
+                                                    .linear(duration: 0.3), value: importProgress)
                                         }
                                     }
                                     .frame(height: 10)
                                 }
                                 .padding(.top, 6)
                             }
-                            
+
                             if showPairingFileMessage && pairingFileIsValid {
                                 HStack {
                                     Spacer()
@@ -214,7 +219,8 @@ struct SettingsView: View {
                                     .asymmetric(
                                         insertion: .scale(scale: 0.9)
                                             .combined(with: .opacity)
-                                            .animation(.spring(response: 0.4, dampingFraction: 0.7)),
+                                            .animation(
+                                                .spring(response: 0.4, dampingFraction: 0.7)),
                                         removal: .opacity.animation(.easeOut(duration: 0.25))
                                     )
                                 )
@@ -223,7 +229,7 @@ struct SettingsView: View {
                         .padding(.vertical, 20)
                         .padding(.horizontal, 16)
                     }
-                    
+
                     // Developer Disk Image section
                     SettingsCard {
                         VStack(alignment: .leading, spacing: 20) {
@@ -231,30 +237,39 @@ struct SettingsView: View {
                                 .font(.headline)
                                 .foregroundColor(.primary)
                                 .padding(.bottom, 4)
-                            
+
                             // Status indicator with icon
                             HStack(spacing: 12) {
-                                Image(systemName: mounted || (mountProg.mountProgress == 100) ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(mounted || (mountProg.mountProgress == 100) ? .green : .red)
-                                
-                                Text(mounted || (mountProg.mountProgress == 100) ? "Successfully Mounted" : "Not Mounted")
-                                    .font(.system(.body, design: .rounded))
-                                    .fontWeight(.medium)
+                                Image(
+                                    systemName: mounted || (mountProg.mountProgress == 100)
+                                        ? "checkmark.circle.fill" : "xmark.circle.fill"
+                                )
+                                .font(.system(size: 24))
+                                .foregroundColor(
+                                    mounted || (mountProg.mountProgress == 100) ? .green : .red)
+
+                                Text(
+                                    mounted || (mountProg.mountProgress == 100)
+                                        ? "Successfully Mounted" : "Not Mounted"
+                                )
+                                .font(.system(.body, design: .rounded))
+                                .fontWeight(.medium)
                             }
                             .padding()
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(Color(UIColor.tertiarySystemBackground))
                             .cornerRadius(12)
-                            
+
                             if !(mounted || (mountProg.mountProgress == 100)) {
                                 Text("Import pairing file and restart the app to mount DDI")
                                     .font(.system(.caption, design: .rounded))
                                     .foregroundColor(.secondary)
                                     .padding(.horizontal, 4)
                             }
-                            
-                            if mountProg.mountProgress > 0 && mountProg.mountProgress < 100 && !mounted {
+
+                            if mountProg.mountProgress > 0 && mountProg.mountProgress < 100
+                                && !mounted
+                            {
                                 VStack(spacing: 8) {
                                     HStack {
                                         Text("Mounting in progress...")
@@ -265,17 +280,23 @@ struct SettingsView: View {
                                             .font(.system(.caption, design: .rounded))
                                             .foregroundColor(.secondary)
                                     }
-                                    
+
                                     GeometryReader { geometry in
                                         ZStack(alignment: .leading) {
                                             RoundedRectangle(cornerRadius: 6)
                                                 .fill(Color(UIColor.tertiarySystemFill))
                                                 .frame(height: 8)
-                                            
+
                                             RoundedRectangle(cornerRadius: 6)
                                                 .fill(Color.green)
-                                                .frame(width: geometry.size.width * CGFloat(mountProg.mountProgress / 100.0), height: 8)
-                                                .animation(.linear(duration: 0.3), value: mountProg.mountProgress)
+                                                .frame(
+                                                    width: geometry.size.width
+                                                        * CGFloat(mountProg.mountProgress / 100.0),
+                                                    height: 8
+                                                )
+                                                .animation(
+                                                    .linear(duration: 0.3),
+                                                    value: mountProg.mountProgress)
                                         }
                                     }
                                     .frame(height: 8)
@@ -290,20 +311,23 @@ struct SettingsView: View {
                         }
                     }
                     SettingsCard {
-                                           VStack(alignment: .leading, spacing: 20) {
-                                               Text("Behavior")
-                                                   .font(.headline)
-                                                   .foregroundColor(.primary)
-                                                   .padding(.bottom, 4)
-                                               
-                                               Toggle("Automatically Quit After Enabling JIT", isOn: $doAutoQuitAfterEnablingJIT)
-                                                   .foregroundColor(.primary)
-                                                   .padding(.vertical, 6)
-                                           }
-                                           .padding(.vertical, 20)
-                                           .padding(.horizontal, 16)
-                                       }
-                                       
+                        VStack(alignment: .leading, spacing: 20) {
+                            Text("Behavior")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                                .padding(.bottom, 4)
+
+                            Toggle(
+                                "Automatically Quit After Enabling JIT",
+                                isOn: $doAutoQuitAfterEnablingJIT
+                            )
+                            .foregroundColor(.primary)
+                            .padding(.vertical, 6)
+                        }
+                        .padding(.vertical, 20)
+                        .padding(.horizontal, 16)
+                    }
+
                     // About section
                     SettingsCard {
                         VStack(alignment: .leading, spacing: 20) {
@@ -311,20 +335,20 @@ struct SettingsView: View {
                                 .font(.headline)
                                 .foregroundColor(.primary)
                                 .padding(.bottom, 4)
-                            
+
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("Creators")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
-                                
+
                                 HStack(spacing: 16) {
                                     VStack(spacing: 8) {
                                         ProfileImage(url: developerProfiles["Stephen"] ?? "")
                                             .frame(width: 60, height: 60)
-                                        
+
                                         Text("Stephen")
                                             .fontWeight(.semibold)
-                                        
+
                                         Text("App Creator")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
@@ -339,14 +363,14 @@ struct SettingsView: View {
                                             UIApplication.shared.open(url)
                                         }
                                     }
-                                    
+
                                     VStack(spacing: 8) {
                                         ProfileImage(url: developerProfiles["jkcoxson"] ?? "")
                                             .frame(width: 60, height: 60)
-                                        
+
                                         Text("jkcoxson")
                                             .fontWeight(.semibold)
-                                        
+
                                         Text("idevice & em_proxy")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
@@ -363,22 +387,34 @@ struct SettingsView: View {
                                     }
                                 }
                             }
-                            
+
                             Divider()
                                 .padding(.vertical, 8)
-                            
+
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("Developers")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
-                                
+
                                 VStack(spacing: 12) {
-                                    CollaboratorRow(name: "appdb team", url: "https://appdb.to", imageUrl: developerProfiles["appdb"] ?? "")
-                                    CollaboratorRow(name: "Stossy11", url: "https://github.com/Stossy11", imageUrl: developerProfiles["Stossy11"] ?? "")
-                                    CollaboratorRow(name: "Neo", url: "https://neoarz.xyz/", imageUrl: developerProfiles["Neo"] ?? "")
-                                    CollaboratorRow(name: "Se2crid", url: "https://github.com/Se2crid", imageUrl: developerProfiles["Se2crid"] ?? "")
-                                    CollaboratorRow(name: "Huge_Black", url: "https://github.com/HugeBlack", imageUrl: developerProfiles["Huge_Black"] ?? "")
-                                    CollaboratorRow(name: "Wynwxst", url: "https://github.com/Wynwxst", imageUrl: developerProfiles["Wynwxst"] ?? "")
+                                    CollaboratorRow(
+                                        name: "appdb team", url: "https://appdb.to",
+                                        imageUrl: developerProfiles["appdb"] ?? "")
+                                    CollaboratorRow(
+                                        name: "Stossy11", url: "https://github.com/Stossy11",
+                                        imageUrl: developerProfiles["Stossy11"] ?? "")
+                                    CollaboratorRow(
+                                        name: "Neo", url: "https://neoarz.xyz/",
+                                        imageUrl: developerProfiles["Neo"] ?? "")
+                                    CollaboratorRow(
+                                        name: "Se2crid", url: "https://github.com/Se2crid",
+                                        imageUrl: developerProfiles["Se2crid"] ?? "")
+                                    CollaboratorRow(
+                                        name: "Huge_Black", url: "https://github.com/HugeBlack",
+                                        imageUrl: developerProfiles["Huge_Black"] ?? "")
+                                    CollaboratorRow(
+                                        name: "Wynwxst", url: "https://github.com/Wynwxst",
+                                        imageUrl: developerProfiles["Wynwxst"] ?? "")
                                 }
                             }
                         }
@@ -386,7 +422,7 @@ struct SettingsView: View {
                         .padding(.horizontal, 16)
                     }
                     .padding(.bottom, 4)
-                    
+
                     // Advanced Settings Card
                     SettingsCard {
                         VStack(alignment: .leading, spacing: 20) {
@@ -394,7 +430,7 @@ struct SettingsView: View {
                                 .font(.headline)
                                 .foregroundColor(.primary)
                                 .padding(.bottom, 4)
-                            
+
                             VStack(spacing: 6) {
                                 Button(action: {
                                     showingConsoleLogsView = true
@@ -412,7 +448,7 @@ struct SettingsView: View {
                                     }
                                 }
                                 .padding(.vertical, 8)
-                                
+
                                 Button(action: {
                                     openAppFolder()
                                 }) {
@@ -441,7 +477,7 @@ struct SettingsView: View {
                     .sheet(isPresented: $showingDisplayView) {
                         DisplayView()
                     }
-                    
+
                     // Combined Help Section (User Manual and VPN Help)
                     SettingsCard {
                         VStack(alignment: .leading, spacing: 20) {
@@ -449,9 +485,9 @@ struct SettingsView: View {
                                 .font(.headline)
                                 .foregroundColor(.primary)
                                 .padding(.bottom, 4)
-                            
+
                             Button(action: {
-                                if let url = URL(string: "https://github.com/StephenDev0/StikDebug-Guide/blob/main/pairing_file.md") {
+                                if let url = URL(string: "https://appdb.to/appdb-jitpair") {
                                     UIApplication.shared.open(url)
                                 }
                             }) {
@@ -465,9 +501,9 @@ struct SettingsView: View {
                                 }
                                 .padding(.vertical, 8)
                             }
-                            
+
                             Button(action: {
-                                if let url = URL(string: "https://discord.gg/qahjXNTDwS") {
+                                if let url = URL(string: "https://appdb.to/my/support") {
                                     UIApplication.shared.open(url)
                                 }
                             }) {
@@ -475,13 +511,13 @@ struct SettingsView: View {
                                     Image(systemName: "questionmark.circle")
                                         .font(.system(size: 18))
                                         .foregroundColor(.primary.opacity(0.8))
-                                    Text("Need support? Join the Discord!")
+                                    Text("Get support via HelpDesk")
                                         .foregroundColor(.primary.opacity(0.8))
                                     Spacer()
                                 }
                                 .padding(.vertical, 8)
                             }
-                            
+
                             HStack(alignment: .center, spacing: 8) {
                                 Image(systemName: "shield.slash")
                                     .font(.system(size: 18))
@@ -492,17 +528,17 @@ struct SettingsView: View {
                         }
                         .padding(.vertical, 20)
                         .padding(.horizontal, 16)
-                        .frame(maxWidth: .infinity) // Ensures this card fills the available width
+                        .frame(maxWidth: .infinity)  // Ensures this card fills the available width
                     }
-                    
+
                     // Version info
                     HStack {
                         Spacer()
-                        
+
                         Text("Version \(appVersion) • iOS \(UIDevice.current.systemVersion)")
                             .font(.footnote)
                             .foregroundColor(.secondary.opacity(0.8))
-                        
+
                         Spacer()
                     }
                     .padding(.top, 8)
@@ -514,32 +550,45 @@ struct SettingsView: View {
         }
         .fileImporter(
             isPresented: $isShowingPairingFilePicker,
-            allowedContentTypes: [UTType(filenameExtension: "mobiledevicepairing", conformingTo: .data)!, .propertyList],
+            allowedContentTypes: [
+                UTType(filenameExtension: "mobiledevicepairing", conformingTo: .data)!,
+                .propertyList,
+            ],
             allowsMultipleSelection: false
         ) { result in
             switch result {
             case .success(let urls):
                 guard let url = urls.first else { return }
-                
+
                 let fileManager = FileManager.default
                 let accessing = url.startAccessingSecurityScopedResource()
-                
+
                 if fileManager.fileExists(atPath: url.path) {
                     do {
-                        if fileManager.fileExists(atPath: URL.documentsDirectory.appendingPathComponent("pairingFile.plist").path) {
-                            try fileManager.removeItem(at: URL.documentsDirectory.appendingPathComponent("pairingFile.plist"))
+                        if fileManager.fileExists(
+                            atPath: URL.documentsDirectory.appendingPathComponent(
+                                "pairingFile.plist"
+                            ).path)
+                        {
+                            try fileManager.removeItem(
+                                at: URL.documentsDirectory.appendingPathComponent(
+                                    "pairingFile.plist"))
                         }
-                        
-                        try fileManager.copyItem(at: url, to: URL.documentsDirectory.appendingPathComponent("pairingFile.plist"))
+
+                        try fileManager.copyItem(
+                            at: url,
+                            to: URL.documentsDirectory.appendingPathComponent("pairingFile.plist"))
                         print("File copied successfully!")
-                        
+
                         DispatchQueue.main.async {
                             isImportingFile = true
                             importProgress = 0.0
                             pairingFileIsValid = false
                         }
-                        
-                        let progressTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
+
+                        let progressTimer = Timer.scheduledTimer(
+                            withTimeInterval: 0.05, repeats: true
+                        ) { timer in
                             DispatchQueue.main.async {
                                 if importProgress < 1.0 {
                                     importProgress += 0.05
@@ -547,11 +596,11 @@ struct SettingsView: View {
                                     timer.invalidate()
                                     isImportingFile = false
                                     pairingFileIsValid = true
-                                    
+
                                     withAnimation {
                                         showPairingFileMessage = true
                                     }
-                                    
+
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                                         withAnimation {
                                             showPairingFileMessage = false
@@ -560,17 +609,17 @@ struct SettingsView: View {
                                 }
                             }
                         }
-                        
+
                         RunLoop.current.add(progressTimer, forMode: .common)
                         startHeartbeatInBackground()
-                        
+
                     } catch {
                         print("Error copying file: \(error)")
                     }
                 } else {
                     print("Source file does not exist.")
                 }
-                
+
                 if accessing {
                     url.stopAccessingSecurityScopedResource()
                 }
@@ -579,7 +628,7 @@ struct SettingsView: View {
             }
         }
         .alert("Appdb Import Error", isPresented: $showAppdbErrorAlert) {
-            Button("OK", role: .cancel) { }
+            Button("OK", role: .cancel) {}
         } message: {
             Text(appdbErrorMessage)
         }
@@ -587,7 +636,7 @@ struct SettingsView: View {
             loadCustomAccentColor()
         }
     }
-    
+
     private func loadCustomAccentColor() {
         if customAccentColorHex.isEmpty {
             selectedAccentColor = .blue
@@ -595,11 +644,11 @@ struct SettingsView: View {
             selectedAccentColor = Color(hex: customAccentColorHex) ?? .blue
         }
     }
-    
+
     private func saveCustomAccentColor(_ color: Color) {
         customAccentColorHex = color.toHex() ?? ""
     }
-    
+
     private func changeAppIcon(to iconName: String) {
         selectedAppIcon = iconName
         UIApplication.shared.setAlternateIconName(iconName == "AppIcon" ? nil : iconName) { error in
@@ -608,7 +657,7 @@ struct SettingsView: View {
             }
         }
     }
-    
+
     private func iconButton(_ label: String, icon: String) -> some View {
         Button(action: {
             changeAppIcon(to: icon)
@@ -629,7 +678,7 @@ struct SettingsView: View {
         }
         .padding(.horizontal)
     }
-    
+
     private func importFromAppdb() {
         // Check if app is installed via appdb
         guard Appdb.shared.isInstalledViaAppdb() else {
@@ -637,18 +686,19 @@ struct SettingsView: View {
             showAppdbErrorAlert = true
             return
         }
-        
+
         // Set importing state
         isImportingFromAppdb = true
-        
+
         // Get required identifiers from AppdbSDK
         let persistentCustomerIdentifierResult = Appdb.shared.getPersistentCustomerIdentifier()
         let persistentDeviceIdentifierResult = Appdb.shared.getPersistentDeviceIdentifier()
         let installationUUIDResult = Appdb.shared.getInstallationUUID()
-        
+
         guard case .success(let persistentCustomerIdentifier) = persistentCustomerIdentifierResult,
-              case .success(let persistentDeviceIdentifier) = persistentDeviceIdentifierResult,
-              case .success(let installationUUID) = installationUUIDResult else {
+            case .success(let persistentDeviceIdentifier) = persistentDeviceIdentifierResult,
+            case .success(let installationUUID) = installationUUIDResult
+        else {
             DispatchQueue.main.async {
                 self.appdbErrorMessage = "Failed to get required identifiers from appdb"
                 self.showAppdbErrorAlert = true
@@ -656,7 +706,7 @@ struct SettingsView: View {
             }
             return
         }
-        
+
         // Make API request
         DispatchQueue.global(qos: .background).async {
             self.makeAppdbPairingFileRequest(
@@ -666,8 +716,11 @@ struct SettingsView: View {
             )
         }
     }
-    
-    private func makeAppdbPairingFileRequest(persistentCustomerIdentifier: String, persistentDeviceIdentifier: String, installationUUID: String) {
+
+    private func makeAppdbPairingFileRequest(
+        persistentCustomerIdentifier: String, persistentDeviceIdentifier: String,
+        installationUUID: String
+    ) {
         guard let url = URL(string: "https://api.appdb.to/get_pairing_file/") else {
             DispatchQueue.main.async {
                 self.appdbErrorMessage = "Invalid API URL"
@@ -676,27 +729,27 @@ struct SettingsView: View {
             }
             return
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        
+
         let parameters = [
             "brand": "appdb",
             "lang": "en",
             "persistent_customer_identifier": persistentCustomerIdentifier,
             "persistent_device_identifier": persistentDeviceIdentifier,
-            "installation_uuid": installationUUID
+            "installation_uuid": installationUUID,
         ]
-        
+
         let formData = parameters.map { "\($0.key)=\($0.value)" }.joined(separator: "&")
         request.httpBody = formData.data(using: .utf8)
-        
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 self.isImportingFromAppdb = false
             }
-            
+
             if let error = error {
                 DispatchQueue.main.async {
                     self.appdbErrorMessage = "Network error: \(error.localizedDescription)"
@@ -704,7 +757,7 @@ struct SettingsView: View {
                 }
                 return
             }
-            
+
             guard let data = data else {
                 DispatchQueue.main.async {
                     self.appdbErrorMessage = "No data received from server"
@@ -712,17 +765,20 @@ struct SettingsView: View {
                 }
                 return
             }
-            
+
             do {
-                let responseDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-                
+                let responseDict =
+                    try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+
                 if let success = responseDict?["success"] as? Bool, success,
-                   let pairingFileData = responseDict?["data"] as? String {
+                    let pairingFileData = responseDict?["data"] as? String
+                {
                     // Save pairing file
                     self.savePairingFile(data: pairingFileData)
                 } else if let errors = responseDict?["errors"] as? [[String: Any]], !errors.isEmpty,
-                         let firstError = errors.first,
-                         let translatedMessage = firstError["translated"] as? String {
+                    let firstError = errors.first,
+                    let translatedMessage = firstError["translated"] as? String
+                {
                     DispatchQueue.main.async {
                         self.appdbErrorMessage = translatedMessage
                         self.showAppdbErrorAlert = true
@@ -741,30 +797,31 @@ struct SettingsView: View {
             }
         }.resume()
     }
-    
+
     private func savePairingFile(data: String) {
         let fileManager = FileManager.default
         let pairingFilePath = URL.documentsDirectory.appendingPathComponent("pairingFile.plist")
-        
+
         do {
             // Remove existing pairing file if it exists
             if fileManager.fileExists(atPath: pairingFilePath.path) {
                 try fileManager.removeItem(at: pairingFilePath)
             }
-            
+
             // Write new pairing file
             try data.write(to: pairingFilePath, atomically: true, encoding: .utf8)
-            
+
             DispatchQueue.main.async {
                 // Show progress bar and initialize progress
                 self.isImportingFile = true
                 self.importProgress = 0.0
-                
+
                 // Start heartbeat in background
                 startHeartbeatInBackground()
-                
+
                 // Create timer to update progress
-                let progressTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
+                let progressTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) {
+                    timer in
                     DispatchQueue.main.async {
                         if self.importProgress < 1.0 {
                             self.importProgress += 0.25
@@ -772,12 +829,12 @@ struct SettingsView: View {
                             timer.invalidate()
                             self.isImportingFile = false
                             self.pairingFileIsValid = true
-                            
+
                             // Show success message
                             withAnimation {
                                 self.showPairingFileMessage = true
                             }
-                            
+
                             // Hide message after delay
                             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                                 withAnimation {
@@ -787,21 +844,25 @@ struct SettingsView: View {
                         }
                     }
                 }
-                
+
                 RunLoop.current.add(progressTimer, forMode: .common)
             }
-            
+
         } catch {
             DispatchQueue.main.async {
-                self.appdbErrorMessage = "Failed to save pairing file: \(error.localizedDescription)"
+                self.appdbErrorMessage =
+                    "Failed to save pairing file: \(error.localizedDescription)"
                 self.showAppdbErrorAlert = true
             }
         }
     }
-    
+
     private func openAppFolder() {
-        if let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-            let path = documentsURL.absoluteString.replacingOccurrences(of: "file://", with: "shareddocuments://")
+        if let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+            .first
+        {
+            let path = documentsURL.absoluteString.replacingOccurrences(
+                of: "file://", with: "shareddocuments://")
             if let url = URL(string: path) {
                 UIApplication.shared.open(url, options: [:]) { success in
                     if !success {
@@ -817,11 +878,11 @@ struct SettingsView: View {
 
 struct SettingsCard<Content: View>: View {
     let content: Content
-    
+
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
-    
+
     var body: some View {
         content
             .background(Color(UIColor.secondarySystemBackground))
@@ -833,7 +894,7 @@ struct SettingsCard<Content: View>: View {
 struct InfoRow: View {
     var title: String
     var value: String
-    
+
     var body: some View {
         HStack {
             Text(title)
@@ -852,7 +913,7 @@ struct LinkRow: View {
     var title: String
     var url: String
     @AppStorage("customAccentColor") private var customAccentColorHex: String = ""
-    
+
     private var accentColor: Color {
         if customAccentColorHex.isEmpty {
             return .blue
@@ -860,7 +921,7 @@ struct LinkRow: View {
             return Color(hex: customAccentColorHex) ?? .blue
         }
     }
-    
+
     var body: some View {
         Button(action: {
             if let url = URL(string: url) {
@@ -885,7 +946,7 @@ struct CollaboratorGridItem: View {
     var name: String
     var url: String
     var imageUrl: String
-    
+
     var body: some View {
         Button(action: {
             if let url = URL(string: url) {
@@ -912,7 +973,7 @@ struct CollaboratorGridItem: View {
 struct ProfileImage: View {
     var url: String
     @State private var image: UIImage?
-    
+
     var body: some View {
         Group {
             if let image = image {
@@ -938,7 +999,7 @@ struct ProfileImage: View {
             }
         }
     }
-    
+
     private func loadImage() {
         guard let imageUrl = URL(string: url) else { return }
         URLSession.shared.dataTask(with: imageUrl) { data, response, error in
@@ -957,7 +1018,7 @@ struct CollaboratorRow: View {
     var imageUrl: String
     var quote: String?
     @AppStorage("customAccentColor") private var customAccentColorHex: String = ""
-    
+
     private var accentColor: Color {
         if customAccentColorHex.isEmpty {
             return .blue
@@ -965,7 +1026,7 @@ struct CollaboratorRow: View {
             return Color(hex: customAccentColorHex) ?? .blue
         }
     }
-    
+
     var body: some View {
         Button(action: {
             if let url = URL(string: url) {
@@ -1008,7 +1069,7 @@ class FolderViewController: UIViewController {
         let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
         guard let documentsDirectory = paths.first else { return }
         let containerPath = (documentsDirectory as NSString).deletingLastPathComponent
-        
+
         if let folderURL = URL(string: "shareddocuments://\(containerPath)") {
             UIApplication.shared.open(folderURL, options: [:]) { success in
                 if !success {
