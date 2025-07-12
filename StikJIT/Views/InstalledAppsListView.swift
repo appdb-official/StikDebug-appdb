@@ -41,7 +41,7 @@ struct InstalledAppsListView: View {
                     appsList
                 }
             }
-            .navigationTitle("Installed Apps")
+            .navigationTitle("Installed Apps".localized)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") { dismiss() }
@@ -70,7 +70,7 @@ Please check if the app you want to connect to is signed with a **development** 
     private var appsList: some View {
         List {
             if !favoriteApps.isEmpty {
-                Section(header: Text("Favorites (\(favoriteApps.count)/4)")) {
+                Section(header: Text(String(format: "Favorites (%d/4)".localized, favoriteApps.count))) {
                     ForEach(favoriteApps, id: \.self) { bundleID in
                         AppButton(
                             bundleID: bundleID,
@@ -86,7 +86,7 @@ Please check if the app you want to connect to is signed with a **development** 
             }
 
             if !filteredRecents.isEmpty {
-                Section(header: Text("Recents")) {
+                Section(header: Text("Recents".localized)) {
                     ForEach(filteredRecents, id: \.self) { bundleID in
                         AppButton(
                             bundleID: bundleID,
@@ -112,7 +112,7 @@ Please check if the app you want to connect to is signed with a **development** 
                 }
             }
 
-            Section(header: Text((favoriteApps.isEmpty && filteredRecents.isEmpty) ? "" : "All Applications")) {
+            Section(header: Text((favoriteApps.isEmpty && filteredRecents.isEmpty) ? "" : "All Applications".localized)) {
                 ForEach(viewModel.apps.sorted(by: { $0.key < $1.key }), id: \.key) { bundleID, appName in
                     AppButton(
                         bundleID: bundleID,

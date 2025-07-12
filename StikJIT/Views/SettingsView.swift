@@ -12,7 +12,8 @@ struct SettingsView: View {
     @AppStorage("username") private var username = "User"
     @AppStorage("customAccentColor") private var customAccentColorHex: String = ""
     @AppStorage("selectedAppIcon") private var selectedAppIcon: String = "AppIcon"
-    @AppStorage("autoQuitAfterEnablingJIT") private var doAutoQuitAfterEnablingJIT = false
+    @AppStorage("useDefaultScript") private var useDefaultScript = false
+    @AppStorage("enableAdvancedOptions") private var enableAdvancedOptions = false
 
     @State private var isShowingPairingFilePicker = false
     @Environment(\.colorScheme) private var colorScheme
@@ -316,13 +317,14 @@ struct SettingsView: View {
                                 .font(.headline)
                                 .foregroundColor(.primary)
                                 .padding(.bottom, 4)
+                            
+                            Toggle("Run Default Script After Connecting", isOn: $useDefaultScript)
+                                .foregroundColor(.primary)
+                                .padding(.vertical, 6)
 
-                            Toggle(
-                                "Automatically Quit After Enabling JIT",
-                                isOn: $doAutoQuitAfterEnablingJIT
-                            )
-                            .foregroundColor(.primary)
-                            .padding(.vertical, 6)
+                            Toggle("Enable Advanced Options", isOn: $enableAdvancedOptions)
+                                .foregroundColor(.primary)
+                                .padding(.vertical, 6)
                         }
                         .padding(.vertical, 20)
                         .padding(.horizontal, 16)

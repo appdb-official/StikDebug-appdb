@@ -43,11 +43,11 @@ public struct TextFieldAlertModifier: ViewModifier {
             $0.text = self.text.wrappedValue
             $0.clearButtonMode = .always
         }
-        controller.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in
+        controller.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel) { _ in
             self.actionCancel(nil)
             shutdown()
         })
-        controller.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+        controller.addAction(UIAlertAction(title: "OK".localized, style: .default) { _ in
             self.action(controller.textFields?.first?.text)
             shutdown()
         })
