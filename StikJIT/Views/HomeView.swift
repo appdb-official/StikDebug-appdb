@@ -468,9 +468,6 @@ struct HomeView: View {
         // This function is no longer needed for background color
         // but we'll keep it empty to avoid breaking anything
     }
-<<<<<<< HEAD
-
-=======
     
     private func getJsCallback() -> DebugAppCallback? {
         let selectedScriptURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
