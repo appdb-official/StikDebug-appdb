@@ -12,7 +12,7 @@ import WidgetKit
 struct InstalledAppsListView: View {
     @StateObject private var viewModel = InstalledAppsViewModel()
     @State private var appIcons: [String: UIImage] = [:]
-    private let sharedDefaults = UserDefaults(suiteName: "group.com.stik.sj")!
+    private let sharedDefaults = UserDefaults(suiteName: "group.to.appdb.jit-ios")!
 
     @AppStorage("recentApps") private var recentApps: [String] = []
     @AppStorage("favoriteApps") private var favoriteApps: [String] = [] {
@@ -248,7 +248,7 @@ struct AppButton: View {
 
     private func loadCachedIcon(bundleID: String) -> UIImage? {
         guard
-            let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.stik.sj")
+            let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.to.appdb.jit-ios")
         else { return nil }
 
         let iconsDir = containerURL.appendingPathComponent("icons", isDirectory: true)
@@ -263,7 +263,7 @@ struct AppButton: View {
 fileprivate func saveIconToGroup(_ image: UIImage, bundleID: String) {
     guard
         let data = image.pngData(),
-        let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.stik.sj")
+        let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.to.appdb.jit-ios")
     else { return }
 
     let iconsDir = container.appendingPathComponent("icons", isDirectory: true)

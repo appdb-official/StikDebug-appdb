@@ -17,7 +17,7 @@ struct AppsEntry: TimelineEntry {
 
 // MARK: - Provider
 struct AppsProvider: TimelineProvider {
-    private let sharedDefaults = UserDefaults(suiteName: "group.com.stik.sj")
+    private let sharedDefaults = UserDefaults(suiteName: "group.to.appdb.jit-ios")
 
     func placeholder(in context: Context) -> AppsEntry {
         AppsEntry(date: .now, bundleIDs: [])
@@ -85,7 +85,7 @@ struct AppsWidgetEntryView: View {
 
     private func loadIcon(for bundleID: String) -> UIImage? {
         guard let container = FileManager.default.containerURL(
-                forSecurityApplicationGroupIdentifier: "group.com.stik.sj")
+                forSecurityApplicationGroupIdentifier: "group.to.appdb.jit-ios")
         else { return nil }
         let url = container
             .appendingPathComponent("icons", isDirectory: true)
