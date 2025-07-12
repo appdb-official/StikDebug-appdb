@@ -10,6 +10,7 @@
 		17C744F02E20BED000834F17 /* Pipify in Frameworks */ = {isa = PBXBuildFile; productRef = 17C744EF2E20BED000834F17 /* Pipify */; };
 		68D569BE2E1B415700A5BA36 /* CodeEditorView in Frameworks */ = {isa = PBXBuildFile; productRef = 68D569BD2E1B415700A5BA36 /* CodeEditorView */; };
 		68D569C02E1B415700A5BA36 /* LanguageSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 68D569BF2E1B415700A5BA36 /* LanguageSupport */; };
+		886F4C382E2260C4001F1410 /* AppdbFramework in Frameworks */ = {isa = PBXBuildFile; productRef = 886F4C372E2260C4001F1410 /* AppdbFramework */; };
 		DC139F6E2DE97EA400F63846 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC139F6D2DE97EA400F63846 /* WidgetKit.framework */; };
 		DC139F702DE97EA400F63846 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC139F6F2DE97EA400F63846 /* SwiftUI.framework */; };
 		DC139F812DE97EA600F63846 /* DebugWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DC139F6C2DE97EA400F63846 /* DebugWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -151,6 +152,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				17C744F02E20BED000834F17 /* Pipify in Frameworks */,
+				886F4C382E2260C4001F1410 /* AppdbFramework in Frameworks */,
 				68D569C02E1B415700A5BA36 /* LanguageSupport in Frameworks */,
 				68D569BE2E1B415700A5BA36 /* CodeEditorView in Frameworks */,
 			);
@@ -265,6 +267,7 @@
 				68D569BD2E1B415700A5BA36 /* CodeEditorView */,
 				68D569BF2E1B415700A5BA36 /* LanguageSupport */,
 				17C744EF2E20BED000834F17 /* Pipify */,
+				886F4C372E2260C4001F1410 /* AppdbFramework */,
 			);
 			productName = StikJIT;
 			productReference = DC6F1D372D94EADD0071B2B6 /* StikDebug.app */;
@@ -381,6 +384,7 @@
 			packageReferences = (
 				68D569BC2E1B415700A5BA36 /* XCRemoteSwiftPackageReference "CodeEditorView" */,
 				17C744EE2E20BED000834F17 /* XCRemoteSwiftPackageReference "swiftui-pipify" */,
+				886F4C362E2260C4001F1410 /* XCRemoteSwiftPackageReference "AppdbSDK" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DC6F1D382D94EADD0071B2B6 /* Products */;
@@ -504,7 +508,7 @@
 				CODE_SIGN_ENTITLEMENTS = DebugWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = SZ977XLF24;
+				DEVELOPMENT_TEAM = F44ZS9HT2P;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DebugWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = DebugWidget;
@@ -534,7 +538,7 @@
 				CODE_SIGN_ENTITLEMENTS = DebugWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = SZ977XLF24;
+				DEVELOPMENT_TEAM = F44ZS9HT2P;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DebugWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = DebugWidget;
@@ -864,7 +868,7 @@
 				CODE_SIGN_ENTITLEMENTS = TunnelProv/TunnelProv.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = SZ977XLF24;
+				DEVELOPMENT_TEAM = F44ZS9HT2P;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TunnelProv/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TunnelProv;
@@ -892,7 +896,7 @@
 				CODE_SIGN_ENTITLEMENTS = TunnelProv/TunnelProv.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = SZ977XLF24;
+				DEVELOPMENT_TEAM = F44ZS9HT2P;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TunnelProv/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TunnelProv;
@@ -991,6 +995,14 @@
 				minimumVersion = 0.15.4;
 			};
 		};
+		886F4C362E2260C4001F1410 /* XCRemoteSwiftPackageReference "AppdbSDK" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/appdb-official/AppdbSDK";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.6.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1008,6 +1020,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 68D569BC2E1B415700A5BA36 /* XCRemoteSwiftPackageReference "CodeEditorView" */;
 			productName = LanguageSupport;
+		};
+		886F4C372E2260C4001F1410 /* AppdbFramework */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 886F4C362E2260C4001F1410 /* XCRemoteSwiftPackageReference "AppdbSDK" */;
+			productName = AppdbFramework;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

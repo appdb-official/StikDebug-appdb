@@ -1,6 +1,15 @@
 {
-  "originHash" : "4df9bfc6bef31f016f92a5a4a2b67290e6fd98a0453ec6e1981c9a8fb5222170",
+  "originHash" : "d243b9fe5d1f663bdfb4644c440c74509f0e0009610fe1e5ca2398e2d5631cb7",
   "pins" : [
+    {
+      "identity" : "appdbsdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/appdb-official/AppdbSDK",
+      "state" : {
+        "revision" : "ea0db9c9b91cc605698ede361bf00aa0e127b961",
+        "version" : "1.6.2"
+      }
+    },
     {
       "identity" : "codeeditorview",
       "kind" : "remoteSourceControl",
