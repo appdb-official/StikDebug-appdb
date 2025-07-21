@@ -158,7 +158,7 @@ class AppdbImportManager: ObservableObject {
                 self.importProgress = 0.0
 
                 // Start heartbeat in background
-                self.startHeartbeatInBackground()
+                startHeartbeatInBackground()
 
                 // Create timer to update progress
                 let progressTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) {
@@ -187,15 +187,4 @@ class AppdbImportManager: ObservableObject {
         }
     }
 
-    private func startHeartbeatInBackground() {
-        DispatchQueue.global(qos: .background).async {
-            let success = startHeartbeat()
-            if !success {
-                DispatchQueue.main.async {
-                    self.appdbErrorMessage = "Failed to start heartbeat"
-                    self.showAppdbErrorAlert = true
-                }
-            }
-        }
-    }
 } 

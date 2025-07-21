@@ -6,9 +6,9 @@
 //
 
 import AppdbSDK
+import Pipify
 import SwiftUI
 import UniformTypeIdentifiers
-import Pipify
 
 extension UIDocumentPickerViewController {
     @objc func fix_init(forOpeningContentTypes contentTypes: [UTType], asCopy: Bool)
@@ -34,6 +34,8 @@ struct HomeView: View {
     @State private var pairingFileIsValid = false
     @State private var isImportingFile = false
     @State private var showingConsoleLogsView = false
+
+    // Local progress for manual file picker (separate from appdb import)
     @State private var importProgress: Float = 0.0
 
     @State private var pidTextAlertShow = false
@@ -43,7 +45,7 @@ struct HomeView: View {
     @State private var pendingBundleIdToEnableJIT: String? = nil
     @State private var pendingPIDToEnableJIT: Int? = nil
     @AppStorage("enableAdvancedOptions") private var enableAdvancedOptions = false
-    
+
     @AppStorage("useDefaultScript") private var useDefaultScript = false
     @State var scriptViewShow = false
     @AppStorage("DefaultScriptName") var selectedScript = "attachDetach.js"
@@ -51,13 +53,23 @@ struct HomeView: View {
 
     // Shared appdb import manager
     @StateObject private var appdbImportManager = AppdbImportManager()
-    
+
     private var accentColor: Color {
         if customAccentColorHex.isEmpty {
             return .blue
         } else {
             return Color(hex: customAccentColorHex) ?? .blue
         }
+    }
+
+    // Helper computed properties to break up complex expressions
+    private var isAnyImportInProgress: Bool {
+        appdbImportManager.isImportingFile || isImportingFile
+    }
+
+    private var currentImportProgress: Double {
+        appdbImportManager.isImportingFile
+            ? appdbImportManager.importProgress : Double(importProgress)
     }
 
     var body: some View {
@@ -90,12 +102,12 @@ struct HomeView: View {
                             if success {
                                 pairingFileExists = true
                                 pairingFileIsValid = true
-                                
+
                                 // Show success message
                                 withAnimation {
                                     showPairingFileMessage = true
                                 }
-                                
+
                                 // Hide message after delay
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                                     withAnimation {
@@ -114,7 +126,9 @@ struct HomeView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(appdbImportManager.isImportingFromAppdb ? Color.gray : accentColor)
+                        .background(
+                            appdbImportManager.isImportingFromAppdb ? Color.gray : accentColor
+                        )
                         .foregroundColor(accentColor.contrastText())
                         .cornerRadius(16)
                         .shadow(color: accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
@@ -128,7 +142,12 @@ struct HomeView: View {
                     if pairingFileExists {
                         // Got a pairing file, show apps
                         if !isMounted() {
-                            showAlert(title: "Device Not Mounted".localized, message: "The Developer Disk Image has not been mounted yet. Check in settings for more information.".localized, showOk: true) { cool in
+                            showAlert(
+                                title: "Device Not Mounted".localized,
+                                message:
+                                    "The Developer Disk Image has not been mounted yet. Check in settings for more information."
+                                    .localized, showOk: true
+                            ) { cool in
                                 // No Need
                             }
                             return
@@ -159,7 +178,7 @@ struct HomeView: View {
                     .shadow(color: accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
                 .padding(.horizontal, 20)
-                
+
                 if pairingFileExists && enableAdvancedOptions {
                     Button(action: {
                         pidTextAlertShow = true
@@ -206,14 +225,14 @@ struct HomeView: View {
                 // Status message area - keeps layout consistent
                 ZStack {
                     // Progress bar for importing file
-                    if appdbImportManager.isImportingFile {
+                    if isAnyImportInProgress {
                         VStack(spacing: 8) {
                             HStack {
                                 Text("Processing pairing file...")
                                     .font(.system(.caption, design: .rounded))
                                     .foregroundColor(.secondaryText)
                                 Spacer()
-                                Text("\(Int(appdbImportManager.importProgress * 100))%")
+                                Text("\(Int(currentImportProgress * 100))%")
                                     .font(.system(.caption, design: .rounded))
                                     .foregroundColor(.secondaryText)
                             }
@@ -227,10 +246,12 @@ struct HomeView: View {
                                     RoundedRectangle(cornerRadius: 4)
                                         .fill(Color.green)
                                         .frame(
-                                            width: geometry.size.width * CGFloat(appdbImportManager.importProgress),
+                                            width: geometry.size.width
+                                                * CGFloat(currentImportProgress),
                                             height: 8
                                         )
-                                        .animation(.linear(duration: 0.3), value: appdbImportManager.importProgress)
+                                        .animation(
+                                            .linear(duration: 0.3), value: currentImportProgress)
                                 }
                             }
                             .frame(height: 8)
@@ -416,7 +437,9 @@ struct HomeView: View {
                 }
 
                 guard let pid = Int(pidStr) else {
-                    showAlert(title: "", message: "Invalid PID".localized, showOk: true, completion: { _ in })
+                    showAlert(
+                        title: "", message: "Invalid PID".localized, showOk: true,
+                        completion: { _ in })
                     return
                 }
                 startJITInBackground(with: pid)
@@ -483,29 +506,33 @@ struct HomeView: View {
         // This function is no longer needed for background color
         // but we'll keep it empty to avoid breaking anything
     }
-    
+
     private func getJsCallback() -> DebugAppCallback? {
-        let selectedScriptURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let selectedScriptURL = FileManager.default.urls(
+            for: .documentDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("scripts").appendingPathComponent(selectedScript)
-        
+
         if !FileManager.default.fileExists(atPath: selectedScriptURL.path()) {
             return nil
         }
-        
+
         return { pid, debugProxyHandle, semaphore in
-            jsModel = RunJSViewModel(pid: Int(pid), debugProxy: debugProxyHandle, semaphore: semaphore)
+            jsModel = RunJSViewModel(
+                pid: Int(pid), debugProxy: debugProxyHandle, semaphore: semaphore)
             scriptViewShow = true
             DispatchQueue.global(qos: .background).async {
                 do {
                     try jsModel?.runScript(path: selectedScriptURL)
                     isProcessing = false
                 } catch {
-                    showAlert(title: "Error Occurred While Executing the Default Script.".localized, message: error.localizedDescription, showOk: true)
+                    showAlert(
+                        title: "Error Occurred While Executing the Default Script.".localized,
+                        message: error.localizedDescription, showOk: true)
                 }
             }
         }
     }
-    
+
     private func startJITInBackground(with bundleID: String) {
         isProcessing = true
 
@@ -513,14 +540,16 @@ struct HomeView: View {
         LogManager.shared.addInfoLog("Starting Debug for \(bundleID)")
 
         DispatchQueue.global(qos: .background).async {
-            let success = JITEnableContext.shared.debugApp(withBundleID: bundleID, logger: { message in
+            let success = JITEnableContext.shared.debugApp(
+                withBundleID: bundleID,
+                logger: { message in
 
-                if let message = message {
-                    // Log messages from the JIT process
-                    LogManager.shared.addInfoLog(message)
-                }
-            }, jsCallback: useDefaultScript ? getJsCallback() : nil)
-            
+                    if let message = message {
+                        // Log messages from the JIT process
+                        LogManager.shared.addInfoLog(message)
+                    }
+                }, jsCallback: useDefaultScript ? getJsCallback() : nil)
+
             DispatchQueue.main.async {
                 LogManager.shared.addInfoLog("Debug process completed for \(bundleID)")
                 isProcessing = false
@@ -535,22 +564,26 @@ struct HomeView: View {
         LogManager.shared.addInfoLog("Starting JIT for pid \(pid)")
 
         DispatchQueue.global(qos: .background).async {
-            let success = JITEnableContext.shared.debugApp(withPID: Int32(pid), logger: { message in
-                
-                if let message = message {
-                    // Log messages from the JIT process
-                    LogManager.shared.addInfoLog(message)
-                }
-            }, jsCallback: useDefaultScript ? getJsCallback() : nil)
-            
+            let success = JITEnableContext.shared.debugApp(
+                withPID: Int32(pid),
+                logger: { message in
+
+                    if let message = message {
+                        // Log messages from the JIT process
+                        LogManager.shared.addInfoLog(message)
+                    }
+                }, jsCallback: useDefaultScript ? getJsCallback() : nil)
+
             DispatchQueue.main.async {
                 LogManager.shared.addInfoLog("JIT process completed for \(pid)")
-                showAlert(title: "Success".localized, message: String(format: "JIT has been enabled for pid %d.".localized, pid), showOk: true, messageType: .success)
+                showAlert(
+                    title: "Success".localized,
+                    message: String(format: "JIT has been enabled for pid %d.".localized, pid),
+                    showOk: true, messageType: .success)
                 isProcessing = false
             }
         }
     }
-
 
 }
 

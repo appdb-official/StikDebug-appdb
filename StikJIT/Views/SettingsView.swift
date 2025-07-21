@@ -3,7 +3,6 @@
 //
 //  Created by Stephen on 3/27/25.
 
-import AppdbSDK
 import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
@@ -22,6 +21,8 @@ struct SettingsView: View {
     @State private var showIconPopover = false
     @State private var showPairingFileMessage = false
     @State private var pairingFileIsValid = false
+
+    // Local progress variables for manual file picker (separate from appdb import)
     @State private var isImportingFile = false
     @State private var importProgress: Float = 0.0
     @State private var is_lc = false
@@ -62,6 +63,16 @@ struct SettingsView: View {
         } else {
             return Color(hex: customAccentColorHex) ?? .blue
         }
+    }
+
+    // Helper computed properties to break up complex expressions
+    private var isAnyImportInProgress: Bool {
+        appdbImportManager.isImportingFile || isImportingFile
+    }
+
+    private var currentImportProgress: Double {
+        appdbImportManager.isImportingFile
+            ? appdbImportManager.importProgress : Double(importProgress)
     }
 
     var body: some View {
@@ -139,14 +150,13 @@ struct SettingsView: View {
                             Button {
                                 appdbImportManager.importFromAppdb { success in
                                     if success {
-                                        pairingFileExists = true
                                         pairingFileIsValid = true
-                                        
-                                        // Show success message if needed
+
+                                        // Show success message
                                         withAnimation {
                                             showPairingFileMessage = true
                                         }
-                                        
+
                                         // Hide message after delay
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                                             withAnimation {
@@ -165,7 +175,10 @@ struct SettingsView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 14)
                                 .foregroundColor(accentColor.contrastText())
-                                .background(appdbImportManager.isImportingFromAppdb ? Color.gray : accentColor)
+                                .background(
+                                    appdbImportManager.isImportingFromAppdb
+                                        ? Color.gray : accentColor
+                                )
                                 .cornerRadius(12)
                             }
                             .disabled(appdbImportManager.isImportingFromAppdb)
@@ -186,14 +199,14 @@ struct SettingsView: View {
                                 .cornerRadius(12)
                             }
 
-                            if isImportingFile {
+                            if isAnyImportInProgress {
                                 VStack(spacing: 10) {
                                     HStack {
                                         Text("Processing pairing file...")
                                             .font(.system(.caption, design: .rounded))
                                             .foregroundColor(.secondary)
                                         Spacer()
-                                        Text("\(Int(importProgress * 100))%")
+                                        Text("\(Int(currentImportProgress * 100))%")
                                             .font(.system(.caption, design: .rounded))
                                             .foregroundColor(.secondary)
                                     }
@@ -208,10 +221,12 @@ struct SettingsView: View {
                                                 .fill(Color.green)
                                                 .frame(
                                                     width: geometry.size.width
-                                                        * CGFloat(importProgress), height: 10
+                                                        * CGFloat(currentImportProgress),
+                                                    height: 10
                                                 )
                                                 .animation(
-                                                    .linear(duration: 0.3), value: importProgress)
+                                                    .linear(duration: 0.3),
+                                                    value: currentImportProgress)
                                         }
                                     }
                                     .frame(height: 10)
@@ -333,7 +348,7 @@ struct SettingsView: View {
                                 .font(.headline)
                                 .foregroundColor(.primary)
                                 .padding(.bottom, 4)
-                            
+
                             Toggle("Run Default Script After Connecting", isOn: $useDefaultScript)
                                 .foregroundColor(.primary)
                                 .padding(.vertical, 6)
@@ -696,8 +711,6 @@ struct SettingsView: View {
         }
         .padding(.horizontal)
     }
-
-
 
     private func openAppFolder() {
         if let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
