@@ -23,9 +23,13 @@ class RunJSViewModel: ObservableObject {
         self.semaphore = semaphore
     }
     
-    func runScript(path: URL) throws {
-        let scriptContent = try String(contentsOf: path, encoding: .utf8)
-        scriptName = path.lastPathComponent
+    func runScript(path: URL, scriptName: String? = nil) throws {
+        try runScript(data: Data(contentsOf: path), name: scriptName)
+    }
+    
+    func runScript(data: Data, name: String? = nil) throws {
+        let scriptContent = String(data: data, encoding: .utf8)
+        scriptName = name ?? "Script"
         
         let getPidFunction: @convention(block) () -> Int = {
             return self.pid
