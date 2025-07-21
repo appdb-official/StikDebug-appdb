@@ -35,9 +35,8 @@ struct SettingsView: View {
     @State private var showingDisplayView = false
 
     // Add state variables for appdb import
-    @State private var isImportingFromAppdb = false
-    @State private var showAppdbErrorAlert = false
-    @State private var appdbErrorMessage = ""
+    // Shared appdb import manager
+    @StateObject private var appdbImportManager = AppdbImportManager()
 
     private var appVersion: String {
         let marketingVersion =
@@ -138,7 +137,24 @@ struct SettingsView: View {
 
                             // Add "Import from appdb" button
                             Button {
-                                importFromAppdb()
+                                appdbImportManager.importFromAppdb { success in
+                                    if success {
+                                        pairingFileExists = true
+                                        pairingFileIsValid = true
+                                        
+                                        // Show success message if needed
+                                        withAnimation {
+                                            showPairingFileMessage = true
+                                        }
+                                        
+                                        // Hide message after delay
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                            withAnimation {
+                                                showPairingFileMessage = false
+                                            }
+                                        }
+                                    }
+                                }
                             } label: {
                                 HStack {
                                     Image(systemName: "square.and.arrow.down")
@@ -149,10 +165,10 @@ struct SettingsView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 14)
                                 .foregroundColor(accentColor.contrastText())
-                                .background(isImportingFromAppdb ? Color.gray : accentColor)
+                                .background(appdbImportManager.isImportingFromAppdb ? Color.gray : accentColor)
                                 .cornerRadius(12)
                             }
-                            .disabled(isImportingFromAppdb)
+                            .disabled(appdbImportManager.isImportingFromAppdb)
 
                             Button {
                                 isShowingPairingFilePicker = true
@@ -629,10 +645,10 @@ struct SettingsView: View {
                 print("Failed to import file: \(error)")
             }
         }
-        .alert("Appdb Import Error", isPresented: $showAppdbErrorAlert) {
+        .alert("Appdb Import Error", isPresented: $appdbImportManager.showAppdbErrorAlert) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text(appdbErrorMessage)
+            Text(appdbImportManager.appdbErrorMessage)
         }
         .onAppear {
             loadCustomAccentColor()
@@ -681,183 +697,7 @@ struct SettingsView: View {
         .padding(.horizontal)
     }
 
-    private func importFromAppdb() {
-        // Check if app is installed via appdb
-        guard Appdb.shared.isInstalledViaAppdb() else {
-            appdbErrorMessage = "App is not installed from appdb"
-            showAppdbErrorAlert = true
-            return
-        }
 
-        // Set importing state
-        isImportingFromAppdb = true
-
-        // Get required identifiers from AppdbSDK
-        let persistentCustomerIdentifierResult = Appdb.shared.getPersistentCustomerIdentifier()
-        let persistentDeviceIdentifierResult = Appdb.shared.getPersistentDeviceIdentifier()
-        let installationUUIDResult = Appdb.shared.getInstallationUUID()
-
-        guard case .success(let persistentCustomerIdentifier) = persistentCustomerIdentifierResult,
-            case .success(let persistentDeviceIdentifier) = persistentDeviceIdentifierResult,
-            case .success(let installationUUID) = installationUUIDResult
-        else {
-            DispatchQueue.main.async {
-                self.appdbErrorMessage = "Failed to get required identifiers from appdb"
-                self.showAppdbErrorAlert = true
-                self.isImportingFromAppdb = false
-            }
-            return
-        }
-
-        // Make API request
-        DispatchQueue.global(qos: .background).async {
-            self.makeAppdbPairingFileRequest(
-                persistentCustomerIdentifier: persistentCustomerIdentifier,
-                persistentDeviceIdentifier: persistentDeviceIdentifier,
-                installationUUID: installationUUID
-            )
-        }
-    }
-
-    private func makeAppdbPairingFileRequest(
-        persistentCustomerIdentifier: String, persistentDeviceIdentifier: String,
-        installationUUID: String
-    ) {
-        guard let url = URL(string: "https://api.appdb.to/get_pairing_file/") else {
-            DispatchQueue.main.async {
-                self.appdbErrorMessage = "Invalid API URL"
-                self.showAppdbErrorAlert = true
-                self.isImportingFromAppdb = false
-            }
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-
-        let parameters = [
-            "brand": "appdb",
-            "lang": "en",
-            "persistent_customer_identifier": persistentCustomerIdentifier,
-            "persistent_device_identifier": persistentDeviceIdentifier,
-            "installation_uuid": installationUUID,
-        ]
-
-        let formData = parameters.map { "\($0.key)=\($0.value)" }.joined(separator: "&")
-        request.httpBody = formData.data(using: .utf8)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                self.isImportingFromAppdb = false
-            }
-
-            if let error = error {
-                DispatchQueue.main.async {
-                    self.appdbErrorMessage = "Network error: \(error.localizedDescription)"
-                    self.showAppdbErrorAlert = true
-                }
-                return
-            }
-
-            guard let data = data else {
-                DispatchQueue.main.async {
-                    self.appdbErrorMessage = "No data received from server"
-                    self.showAppdbErrorAlert = true
-                }
-                return
-            }
-
-            do {
-                let responseDict =
-                    try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-
-                if let success = responseDict?["success"] as? Bool, success,
-                    let pairingFileData = responseDict?["data"] as? String
-                {
-                    // Save pairing file
-                    self.savePairingFile(data: pairingFileData)
-                } else if let errors = responseDict?["errors"] as? [[String: Any]], !errors.isEmpty,
-                    let firstError = errors.first,
-                    let translatedMessage = firstError["translated"] as? String
-                {
-                    DispatchQueue.main.async {
-                        self.appdbErrorMessage = translatedMessage
-                        self.showAppdbErrorAlert = true
-                    }
-                } else {
-                    DispatchQueue.main.async {
-                        self.appdbErrorMessage = "Unknown error occurred"
-                        self.showAppdbErrorAlert = true
-                    }
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    self.appdbErrorMessage = "Failed to parse server response"
-                    self.showAppdbErrorAlert = true
-                }
-            }
-        }.resume()
-    }
-
-    private func savePairingFile(data: String) {
-        let fileManager = FileManager.default
-        let pairingFilePath = URL.documentsDirectory.appendingPathComponent("pairingFile.plist")
-
-        do {
-            // Remove existing pairing file if it exists
-            if fileManager.fileExists(atPath: pairingFilePath.path) {
-                try fileManager.removeItem(at: pairingFilePath)
-            }
-
-            // Write new pairing file
-            try data.write(to: pairingFilePath, atomically: true, encoding: .utf8)
-
-            DispatchQueue.main.async {
-                // Show progress bar and initialize progress
-                self.isImportingFile = true
-                self.importProgress = 0.0
-
-                // Start heartbeat in background
-                startHeartbeatInBackground()
-
-                // Create timer to update progress
-                let progressTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) {
-                    timer in
-                    DispatchQueue.main.async {
-                        if self.importProgress < 1.0 {
-                            self.importProgress += 0.25
-                        } else {
-                            timer.invalidate()
-                            self.isImportingFile = false
-                            self.pairingFileIsValid = true
-
-                            // Show success message
-                            withAnimation {
-                                self.showPairingFileMessage = true
-                            }
-
-                            // Hide message after delay
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                                withAnimation {
-                                    self.showPairingFileMessage = false
-                                }
-                            }
-                        }
-                    }
-                }
-
-                RunLoop.current.add(progressTimer, forMode: .common)
-            }
-
-        } catch {
-            DispatchQueue.main.async {
-                self.appdbErrorMessage =
-                    "Failed to save pairing file: \(error.localizedDescription)"
-                self.showAppdbErrorAlert = true
-            }
-        }
-    }
 
     private func openAppFolder() {
         if let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
