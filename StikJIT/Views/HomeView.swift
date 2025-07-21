@@ -12,9 +12,9 @@ import UniformTypeIdentifiers
 
 struct JITEnableConfiguration {
     var bundleID: String? = nil
-    var pid : Int? = nil
+    var pid: Int? = nil
     var scriptData: Data? = nil
-    var scriptName : String? = nil
+    var scriptName: String? = nil
 }
 
 struct HomeView: View {
@@ -41,7 +41,7 @@ struct HomeView: View {
     @State private var pidStr = ""
 
     @State private var viewDidAppeared = false
-    @State private var pendingJITEnableConfiguration : JITEnableConfiguration? = nil
+    @State private var pendingJITEnableConfiguration: JITEnableConfiguration? = nil
     @AppStorage("enableAdvancedOptions") private var enableAdvancedOptions = false
 
     @AppStorage("useDefaultScript") private var useDefaultScript = false
@@ -399,10 +399,12 @@ struct HomeView: View {
                 startJITInBackground(bundleID: selectedBundle)
             }
         }
-        .pipify(isPresented: Binding(
-            get: { pipRequired && enablePiP },
-            set: { newValue in pipRequired = newValue }
-        )) {
+        .pipify(
+            isPresented: Binding(
+                get: { pipRequired && enablePiP },
+                set: { newValue in pipRequired = newValue }
+            )
+        ) {
             RunJSViewPiP(model: $jsModel)
         }
         .sheet(isPresented: $scriptViewShow) {
@@ -445,7 +447,7 @@ struct HomeView: View {
                     return
                 }
                 startJITInBackground(pid: pid)
-                
+
             },
             actionCancel: { _ in
                 pidStr = ""
@@ -456,37 +458,49 @@ struct HomeView: View {
             if url.host != "enable-jit" {
                 return
             }
-            
+
             var config = JITEnableConfiguration()
             let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-            
-            if let pidStr = components?.queryItems?.first(where: { $0.name == "pid" })?.value, let pid = Int(pidStr) {
+
+            if let pidStr = components?.queryItems?.first(where: { $0.name == "pid" })?.value,
+                let pid = Int(pidStr)
+            {
                 config.pid = pid
             }
-            if let bundleId = components?.queryItems?.first(where: { $0.name == "bundle-id" })?.value {
+            if let bundleId = components?.queryItems?.first(where: { $0.name == "bundle-id" })?
+                .value
+            {
                 config.bundleID = bundleId
             }
-            if let scriptBase64URL = components?.queryItems?.first(where: { $0.name == "script-data" })?.value?.removingPercentEncoding {
+            if let scriptBase64URL = components?.queryItems?.first(where: {
+                $0.name == "script-data"
+            })?.value?.removingPercentEncoding {
                 let base64 = base64URLToBase64(scriptBase64URL)
                 if let scriptData = Data(base64Encoded: base64) {
                     config.scriptData = scriptData
                 }
             }
-            if let scriptName = components?.queryItems?.first(where: { $0.name == "script-name" })?.value {
+            if let scriptName = components?.queryItems?.first(where: { $0.name == "script-name" })?
+                .value
+            {
                 config.scriptName = scriptName
             }
-            
+
             if viewDidAppeared {
-                startJITInBackground(bundleID: config.bundleID, pid: config.pid, scriptData: config.scriptData, scriptName: config.scriptName, triggeredByURLScheme: true)
+                startJITInBackground(
+                    bundleID: config.bundleID, pid: config.pid, scriptData: config.scriptData,
+                    scriptName: config.scriptName, triggeredByURLScheme: true)
             } else {
                 pendingJITEnableConfiguration = config
             }
-            
+
         }
         .onAppear {
             viewDidAppeared = true
             if let config = pendingJITEnableConfiguration {
-                startJITInBackground(bundleID: config.bundleID, pid: config.pid, scriptData: config.scriptData, scriptName: config.scriptName, triggeredByURLScheme: true)
+                startJITInBackground(
+                    bundleID: config.bundleID, pid: config.pid, scriptData: config.scriptData,
+                    scriptName: config.scriptName, triggeredByURLScheme: true)
                 self.pendingJITEnableConfiguration = nil
             }
         }
@@ -510,13 +524,13 @@ struct HomeView: View {
         // This function is no longer needed for background color
         // but we'll keep it empty to avoid breaking anything
     }
-    
+
     private func getJsCallback(_ script: Data, name: String? = nil) -> DebugAppCallback {
         return { pid, debugProxyHandle, semaphore in
             jsModel = RunJSViewModel(
                 pid: Int(pid), debugProxy: debugProxyHandle, semaphore: semaphore)
             scriptViewShow = true
-            
+
             DispatchQueue.global(qos: .background).async {
                 do {
                     try jsModel?.runScript(data: script, name: name)
@@ -528,47 +542,53 @@ struct HomeView: View {
             }
         }
     }
-    
+
     // launch app following this order: pid > bundleID
     // load script following this order: scriptData > script file from script name > saved script for bundleID > default script
     // if advanced mode is disabled the whole script loading will be skipped. If use default script is disabled default script will not be loaded
-    private func startJITInBackground(bundleID: String? = nil, pid : Int? = nil, scriptData: Data? = nil, scriptName : String? = nil, triggeredByURLScheme: Bool = false) {
+    private func startJITInBackground(
+        bundleID: String? = nil, pid: Int? = nil, scriptData: Data? = nil,
+        scriptName: String? = nil, triggeredByURLScheme: Bool = false
+    ) {
         isProcessing = true
         // Add log message
         LogManager.shared.addInfoLog("Starting Debug for \(bundleID ?? String(pid ?? 0))")
-        
+
         DispatchQueue.global(qos: .background).async {
             var scriptData = scriptData
             var scriptName = scriptName
             if enableAdvancedOptions && scriptData == nil {
-                if scriptName == nil, let bundleID, let mapping = UserDefaults.standard.dictionary(forKey: "BundleScriptMap") as? [String: String] {
+                if scriptName == nil, let bundleID,
+                    let mapping = UserDefaults.standard.dictionary(forKey: "BundleScriptMap")
+                        as? [String: String]
+                {
                     scriptName = mapping[bundleID]
                 }
-                
+
                 if useDefaultScript && scriptName == nil {
                     scriptName = selectedScript
                 }
-                
+
                 if scriptData == nil, let scriptName {
-                    let selectedScriptURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                    let selectedScriptURL = FileManager.default.urls(
+                        for: .documentDirectory, in: .userDomainMask)[0]
                         .appendingPathComponent("scripts").appendingPathComponent(scriptName)
-                    
+
                     if FileManager.default.fileExists(atPath: selectedScriptURL.path) {
                         do {
                             scriptData = try Data(contentsOf: selectedScriptURL)
                         } catch {
                             print("failed to load data from script \(error)")
                         }
-                        
+
                     }
                 }
             } else {
                 scriptData = nil
             }
-            
-            
+
             var callback: DebugAppCallback? = nil
-            
+
             if let scriptData {
                 callback = getJsCallback(scriptData, name: scriptName ?? bundleID ?? "Script")
                 if triggeredByURLScheme {
@@ -577,38 +597,45 @@ struct HomeView: View {
 
                 pipRequired = true
             }
-            
+
             let logger: LogFunc = { message in
-                
+
                 if let message = message {
                     // Log messages from the JIT process
                     LogManager.shared.addInfoLog(message)
                 }
             }
-            var success : Bool
+            var success: Bool
             if let pid {
-                success = JITEnableContext.shared.debugApp(withPID: Int32(pid), logger: logger, jsCallback: callback)
+                success = JITEnableContext.shared.debugApp(
+                    withPID: Int32(pid), logger: logger, jsCallback: callback)
             } else if let bundleID {
-                success = JITEnableContext.shared.debugApp(withBundleID: bundleID, logger: logger, jsCallback: callback)
+                success = JITEnableContext.shared.debugApp(
+                    withBundleID: bundleID, logger: logger, jsCallback: callback)
             } else {
                 DispatchQueue.main.async {
-                    showAlert(title: "Failed to Debug App".localized, message:  "Either bundle ID or PID should be specified.".localized, showOk: true)
+                    showAlert(
+                        title: "Failed to Debug App".localized,
+                        message: "Either bundle ID or PID should be specified.".localized,
+                        showOk: true)
                 }
                 success = false
             }
-            
+
             if success {
                 DispatchQueue.main.async {
-                    LogManager.shared.addInfoLog("Debug process completed for \(bundleID ?? String(pid ?? 0))")
+                    LogManager.shared.addInfoLog(
+                        "Debug process completed for \(bundleID ?? String(pid ?? 0))")
                 }
             }
             isProcessing = false
             pipRequired = false
         }
     }
-    
+
     func base64URLToBase64(_ base64url: String) -> String {
-        var base64 = base64url
+        var base64 =
+            base64url
             .replacingOccurrences(of: "-", with: "+")
             .replacingOccurrences(of: "_", with: "/")
 
@@ -616,7 +643,6 @@ struct HomeView: View {
         let paddingLength = 4 - (base64.count % 4)
         if paddingLength < 4 {
             base64 += String(repeating: "=", count: paddingLength)
-        }
         }
 
         return base64
