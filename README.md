@@ -1,37 +1,158 @@
 <div align="center">
-   <a href="https://apps.apple.com/us/app/stikdebug/id6744045754" target="_blank" rel="noopener noreferrer">
-   <img width="217" height="217" src="/assets/StikJIT_Rounded_Corners.png" alt="Logo">
-   </a>
+   <img width="217" height="217" src="/assets/StikJIT.png" alt="Logo">
 </div>
-   
 
 <div align="center">
-  <h1><b>StikDebug-appdb</b></h1>
-  <p><i> An on-device debugger/JIT enabler for iOS versions 17.4+ powered by <a href="https://github.com/jkcoxson/idevice">idevice.</a>, modified by appdb for easy integration </i></p>
+  <h1><b>StikDebug</b></h1>
+  <p><i>An on-device debugger/JIT enabler for iOS versions 17.4+ powered by <a href="https://github.com/jkcoxson/idevice">idevice</a>.</i></p>
 </div>
+
 <h6 align="center">
-
-| <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://github.com/neoarz/StikJIT/blob/main/assets/views/dark/HomeScreen.PNG?raw=true"><source media="(prefers-color-scheme: light)" srcset="https://github.com/neoarz/StikJIT/blob/main/assets/views/light/HomeScreen.PNG?raw=true"><img alt="Sources" src="https://github.com/neoarz/StikJIT/blob/main/assets/views/dark/HomeScreen.PNG?raw=true" width="200"></picture></p> | <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://github.com/neoarz/StikJIT/blob/main/assets/views/dark/AppsList.PNG?raw=true"><source media="(prefers-color-scheme: light)" srcset="https://github.com/neoarz/StikJIT/blob/main/assets/views/light/AppsList.PNG?raw=true"><img alt="Store" src="https://github.com/neoarz/StikJIT/blob/main/assets/views/dark/AppsList.PNG?raw=true" width="200"></picture></p> | <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://github.com/neoarz/StikJIT/blob/main/assets/views/dark/Settings.PNG?raw=true"><source media="(prefers-color-scheme: light)" srcset="https://github.com/neoarz/StikJIT/blob/main/assets/views/light/Settings.PNG?raw=true"><img alt="Library" src="https://github.com/neoarz/StikJIT/blob/main/assets/views/dark/Settings.PNG?raw=true" width="200"></picture></p> | <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://github.com/neoarz/StikJIT/blob/main/assets/views/dark/GetJIT.gif?raw=true"><source media="(prefers-color-scheme: light)" srcset="https://github.com/neoarz/StikJIT/blob/main/assets/views/light/GetJIT.gif?raw=true"><img alt="Signing" src="https://github.com/neoarz/StikJIT/blob/main/assets/views/dark/GetJIT.gif?raw=true" width="200"></picture></p> |
-| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|                                                                                                                                                                                                                        **Home Screen**                                                                                                                                                                                                                         |                                                                                                                                                                                                                     **Apps List**                                                                                                                                                                                                                      |                                                                                                                                                                                                                       **Settings**                                                                                                                                                                                                                       |                                                                                                                                                                                                              **JIT Under 10 Seconds**                                                                                                                                                                                                              |
-
-## Download
-<h6 align="center">
-
-  <a href="https://appdb.to/details/45a698af5360560fd8a522a8ebbc634da8f55df4">
-  <img
-    title="Get from appdb"
-    src="https://s3cdn.dbservices.to/official_buttons/get_white.png"
-    width="100"
-  />
-</a>
+  <a href="https://appdb.to/my/support">
+    <img src="https://img.shields.io/badge/appdb-support-1D9BF0?logo=safari&logoColor=white&style=for-the-badge&labelColor=23272A" />
+  </a>
+  <a href="https://github.com/StephenDev0/StikDebug/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/StephenDev0/StikDebug?label=License&color=5865F2&style=for-the-badge&labelColor=23272A" />
+  </a>
+  <a href="https://github.com/StephenDev0/StikDebug/stargazers">
+    <img src="https://img.shields.io/github/stars/StephenDev0/StikDebug?label=Stars&color=FEE75C&style=for-the-badge&labelColor=23272A" />
+  </a>
+  <a href="https://github.com/StephenDev0/StikDebug/releases">
+    <img src="https://img.shields.io/github/v/release/StephenDev0/StikDebug?label=Latest&color=00BFFF&style=for-the-badge&labelColor=23272A" />
+  </a>
+  <br />
 </h6>
 
-## Features  
-- On-device debugging/Just-In-Time (JIT) compilation for supported apps via [`idevice`](https://github.com/jkcoxson/idevice).  
-- Seamless integration with our custom-built loopback vpn.  
-- Native UI for managing debugging/JIT-enabling.  
-- No data collection—ensuring full privacy. 
+## Features
+- **JIT:** Enable Just In Time compilation for sideloaded apps that have the `get-task-allow` entitlement.
+- **App Launching:** Launch every app installed on your device.
+- **Console:** Live app and system logs.
+- **Scripts:** Manage automation scripts (mainly used for iOS 26 JIT). 
+- **App Expiry:** See when apps will expire and install/remove profiles.
+- **Device Info:** View detailed device metadata.
+- **Processes:** Inspect running apps/processes and terminate them.
+- **Location Simulator:** Simulate the GPS location of your device.
 
-## License  
-StikDebug-appdb is licensed under **AGPL-3.0**. See [`LICENSE`](LICENSE) for details.
+## Download
+> [!NOTE]
+> **Notice:** StikDebug is no longer available on the App Store. Please use the official download methods below.
+
+<div align="center" style="display: flex; justify-content: center; align-items: center; gap: 16px; flex-wrap: wrap;">
+   <a href="https://stikstore.app/altdirect/?url=https://stikdebug.xyz/index.json" target="_blank">
+     <img src="https://github.com/stikstore/altdirect/blob/main/assets/png/AltSource_Blue.png" alt="Add AltSource" width="200">
+   </a>
+   <a href="https://github.com/StephenDev0/StikDebug/releases/download/3.1.1/StikDebug-3.1.1.ipa" target="_blank">
+     <img src="https://github.com/stikstore/altdirect/blob/main/assets/png/Download_Blue.png" alt="Download .ipa" width="200">
+   </a>
+</div>
+
+## Compatibility
+
+| iOS Version              | Status               | Notes                                                                 |
+|--------------------------|----------------------|-----------------------------------------------------------------------|
+| 1.0 – 17.3.X             | Not supported        | Uses Different Connection Protocols                                   |
+| 17.4 – 18.x              | Fully supported      | Stable                                                                |
+| 26.0+              | Supported            | Limited App Availability (Developers need to update their apps to work.) |
+
+## How to Enable JIT
+
+StikDebug enables **JIT** for sideloaded apps on iOS 17.4+ without needing a computer after the initial pairing setup.
+
+### Requirements
+- StikDebug installed (via AltSource, direct .ipa, or self-built)
+- A valid **pairing file** (.plist / .mobiledevicepairing) for your device
+- SideStore / AltStore / similar sideload tool (for app refreshing)
+- A loopback VPN such as [LocalDevVPN](https://apps.apple.com/us/app/localdevvpn/id6755608044)
+
+### Steps
+1. **Obtain a pairing file**  
+   - Detailed guide: [Enable JIT with appdb](https://appdb.to/enable-jit).
+
+2. **Set up VPN**  
+   - Launch LocalDevVPN and enable the VPN.
+
+4. **Enable JIT for an app**  
+   - Launch StikDebug and tapp the `Enable JIT` button.
+   - Select your sideloaded app from the list in StikDebug.  
+
+**Troubleshooting**  
+- "Connection dropped" or loopback errors → Check iOS version compatibility / beta warnings.  
+- Heartbeat errors → Ensure that the VPN is on and that you are connecected to Wi-Fi. It may be a pairing file issue.
+- Pairing file issues → Replace file with device unlocked & trusted.  
+- Still stuck? Contact [appdb support](https://appdb.to/my/support).
+
+<!-- 
+## Screenshots
+
+<div align="center">
+  <img src="screenshots/pairing-import.png" width="320" alt="Pairing file import screen">
+  <img src="screenshots/app-list.png" width="320" alt="Sideloaded apps list">
+  <img src="screenshots/jit-enabled.png" width="320" alt="JIT successfully enabled">
+  <img src="screenshots/processes.png" width="320" alt="Process management tab">
+</div>
+
+(Add images to a /screenshots/ folder in the repo and uncomment when ready.)
+-->
+
+## Building from Source
+
+### Requirements
+- macOS (latest recommended)
+- Xcode 16+ (Xcode 26+ preferred for iOS 26+ support)
+- iOS device on iOS 17.4+ (for testing)
+- Git
+- Basic Xcode/Swift knowledge
+
+### Steps
+1. **Clone the repo**
+   ```bash
+   git clone https://github.com/StephenDev0/StikDebug.git
+   cd StikDebug
+   ```
+
+2. **Open in Xcode**
+   - Launch Xcode
+   - Open `StikDebug.xcodeproj`
+
+3. **Configure signing**
+   - Select the **StikDebug** target
+   - Go to **Signing & Capabilities**
+   - Sign in with your Apple ID (free or paid developer account)
+   - Set a unique **Bundle Identifier** (e.g., `com.yourname.StikDebug`)
+
+4. **Build & install**
+   - Select your connected device
+   - Press **Cmd + R** (or Product → Run)
+   - Trust the certificate on device: Settings → General → VPN & Device Management
+
+After install, follow the JIT setup steps above (pairing import, etc.).
+
+## Contributing
+
+Thank you for your interest in contributing to this project. Contributions of all kinds are welcome.
+
+### Reporting Bugs
+If you discover a bug, please open an issue and include:
+- A clear and descriptive title
+- Steps to reproduce the issue
+- Expected behavior vs. actual behavior
+- Relevant logs, screenshots, or environment details (iOS version, device model, etc.)
+
+### Suggesting Features
+To propose a new feature, open a feature request issue and provide:
+- A clear description of the feature
+- The problem it solves or the use case it addresses
+- Any relevant examples or implementation ideas
+
+### Code Contributions (Best Practices)
+- Follow normal Swift and SwiftUI style.
+- Write clear and easy to understand code.
+- Keep your changes consistent with how the project is already set up.
+- Make sure everything builds and works without errors.
+
+We appreciate your time and effort in helping improve this project.
+
+## Code Help
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/stephendev0/stikdebug)
+## License
+StikDebug is licensed under **AGPL-3.0**. See [`LICENSE`](LICENSE) for details.

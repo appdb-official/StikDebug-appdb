@@ -15,8 +15,7 @@ import Combine
 struct InstalledAppsListView: View {
     @StateObject private var viewModel = InstalledAppsViewModel()
 
-    @State private var appIcons: [String: UIImage] = [:]
-    private let sharedDefaults = UserDefaults(suiteName: "group.to.appdb.jit-ios")!
+    private let sharedDefaults = UserDefaults(suiteName: ScriptStore.favoriteAppNamesSuiteName) ?? .standard
 
     @AppStorage("recentApps") private var recentApps: [String] = []
     @AppStorage("favoriteApps") private var favoriteApps: [String] = [] {
@@ -29,8 +28,7 @@ struct InstalledAppsListView: View {
     }
 
     @AppStorage("loadAppIconsOnJIT") private var loadAppIconsOnJIT = true
-    @AppStorage("performanceMode") private var performanceMode = false
-    @State private var showPerformanceToast = false
+    private let performanceMode = true
     @State private var launchingBundles: Set<String> = []
     @State private var launchFeedback: LaunchFeedback? = nil
     @State private var debuggableSearchText: String = ""
@@ -42,11 +40,19 @@ struct InstalledAppsListView: View {
 
     @Environment(\.dismiss) private var dismiss
     var onSelectApp: (String) -> Void
+    var showDoneButton: Bool = true
+    var onImportPairingFile: (() -> Void)? = nil
 
-    @AppStorage("appTheme") private var appThemeRaw: String = AppTheme.system.rawValue
-    @Environment(\.themeExpansionManager) private var themeExpansion
-    private var backgroundStyle: BackgroundStyle { themeExpansion?.backgroundStyle(for: appThemeRaw) ?? AppTheme.system.backgroundStyle }
-    private var preferredScheme: ColorScheme? { themeExpansion?.preferredColorScheme(for: appThemeRaw) }
+
+    private var currentSearchBinding: Binding<String> {
+        Binding(
+            get: { selectedTab == .debuggable ? debuggableSearchText : launchSearchText },
+            set: {
+                if selectedTab == .debuggable { debuggableSearchText = $0 }
+                else { launchSearchText = $0 }
+            }
+        )
+    }
 
     private var debuggableSearchIsActive: Bool {
         !debuggableSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -113,19 +119,19 @@ struct InstalledAppsListView: View {
         return base.filter { matches(query, bundleID: $0.key, name: $0.value) }
     }
 
-    private enum AppListTab: String, CaseIterable, Identifiable {
-        case debuggable
-        case launch
+private enum AppListTab: Int, CaseIterable, Identifiable {
+    case debuggable
+    case launch
 
-        var id: String { rawValue }
+    var id: Int { rawValue }
 
-        var title: String {
-            switch self {
-            case .debuggable: return "Debuggable"
-            case .launch: return "Launch"
-            }
+    var title: String {
+        switch self {
+        case .debuggable: return "JIT"
+        case .launch: return "Other"
         }
     }
+}
 
     private struct LaunchFeedback: Identifiable {
         let id = UUID()
@@ -157,97 +163,69 @@ struct InstalledAppsListView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                ThemedBackground(style: backgroundStyle)
-                    .ignoresSafeArea()
-
-                if viewModel.isLoading {
-                    ProgressView("Loading Apps…".localized)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 20)
-                        .background(
-                            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                .fill(.ultraThinMaterial)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                        .stroke(.white.opacity(0.15), lineWidth: 1)
-                                )
-                        )
-                        .shadow(color: .black.opacity(0.12), radius: 10, x: 0, y: 4)
-                        .transition(.opacity.combined(with: .scale))
-                } else {
-                    tabbedContent
-                        .transition(.opacity)
-                        .transaction { t in t.disablesAnimations = true }
-                }
-
-                if showPerformanceToast {
-                    VStack {
-                        Spacer()
-                        Text(performanceMode ? "Performance Mode On" : "Performance Mode Off")
-                            .font(.subheadline.weight(.semibold))
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(.ultraThinMaterial, in: Capsule())
-                            .shadow(radius: 4)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                            .padding(.bottom, 40)
-                    }
-                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showPerformanceToast)
-                }
-
-                if let feedback = launchFeedback {
-                    VStack {
-                        Spacer()
-                        Text(feedback.message)
-                            .font(.subheadline.weight(.semibold))
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(
-                                Capsule()
-                                    .fill(.ultraThinMaterial)
-                                    .overlay(
-                                        Capsule()
-                                            .stroke(feedback.success ? Color.green.opacity(0.35) : Color.red.opacity(0.35), lineWidth: 1)
-                                    )
-                            )
-                            .foregroundStyle(feedback.success ? .green : .red)
-                            .shadow(radius: 4)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                            .padding(.bottom, 40)
-                    }
-                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: launchFeedback?.id)
-                }
-            }
-            .navigationTitle("Installed Apps".localized)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        performanceMode.toggle()
-                        Haptics.selection()
-                        showPerformanceToast = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                            withAnimation {
-                                showPerformanceToast = false
+            tabContent(for: selectedTab)
+                .transition(.opacity)
+                .transaction { t in t.disablesAnimations = true }
+                .navigationTitle(selectedTab == .debuggable ? "Enable JIT".localized : "Launch Apps".localized)
+                .searchable(
+                    text: currentSearchBinding,
+                    placement: .navigationBarDrawer(displayMode: .always),
+                    prompt: selectedTab == .debuggable
+                        ? "Search apps or bundle ID".localized
+                        : "Search".localized
+                )
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        Picker("", selection: $selectedTab) {
+                            ForEach(AppListTab.allCases) { tab in
+                                Text(tab.title.localized).tag(tab)
                             }
                         }
-                    } label: {
-                        Image(systemName: performanceMode ? "bolt.fill" : "bolt.slash.fill")
-                            .imageScale(.large)
-                            .foregroundStyle(performanceMode ? .yellow : .secondary)
-                            .accessibilityLabel("Toggle Performance Mode")
-                            .accessibilityValue(performanceMode ? "On" : "Off")
+                        .pickerStyle(.segmented)
+                        .frame(width: 220)
+                    }
+                    if let onImportPairingFile {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button(action: onImportPairingFile) {
+                                Image(systemName: "doc.badge.plus")
+                            }
+                        }
+                    }
+                    if showDoneButton {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Done") { dismiss() }.fontWeight(.semibold)
+                        }
+                    } else {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button {
+                                viewModel.refreshAppLists()
+                            } label: {
+                                Image(systemName: "arrow.clockwise")
+                            }
+                            .disabled(viewModel.isLoading)
+                        }
                     }
                 }
-
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") { dismiss() }
-                        .fontWeight(.semibold)
+                .onAppear {
                 }
+        }
+        .overlay {
+            if let feedback = launchFeedback {
+                VStack {
+                    Spacer()
+                    Text(feedback.message)
+                        .font(.subheadline.weight(.semibold))
+                        .padding(.horizontal, 16).padding(.vertical, 8)
+                        .background(Capsule().fill(.ultraThinMaterial))
+                        .foregroundStyle(feedback.success ? .green : .red)
+                        .shadow(radius: 4)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .padding(.bottom, 40)
+                }
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: launchFeedback?.id)
             }
         }
-        .preferredColorScheme(preferredScheme)
-        .onAppear {
+                .onAppear {
             prefetchedBundleIDs.removeAll()
             prefetchPriorityIcons()
         }
@@ -264,118 +242,12 @@ struct InstalledAppsListView: View {
         }
         .onChange(of: selectedTab) { _, _ in prefetchPriorityIcons() }
         .onChange(of: pinnedSystemApps) { _, _ in prefetchPriorityIcons() }
-    }
-
-    // MARK: Empty State
-
-    private func emptyState(for tab: AppListTab) -> some View {
-        VStack(spacing: 16) {
-            Image(systemName: "magnifyingglass")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 60, height: 60)
-                .foregroundStyle(.secondary)
-
-            switch tab {
-            case .debuggable:
-                Text("No Debuggable App Found".localized)
-                    .font(.title2.weight(.semibold))
-                    .foregroundStyle(.primary)
-
-                Text("""
-                StikDebug can only connect to apps with the “get-task-allow” entitlement.
-                Please check if the app you want to connect to is signed with a development certificate.
-                """.localized)
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-            case .launch:
-                Text("No Launchable Apps".localized)
-                    .font(.title2.weight(.semibold))
-                    .foregroundStyle(.primary)
-
-                Text("""
-                Once your device pairing file is imported and CoreDevice is connected, all non‑debuggable and hidden system apps will appear here.
-                """.localized)
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-            }
+        .onReceive(NotificationCenter.default.publisher(for: .pairingFileImported)) { _ in
+            viewModel.refreshAppLists()
         }
-        .padding(24)
-        .glassCard(cornerRadius: 24, material: .thinMaterial, strokeOpacity: 0.12)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(tab == .debuggable ? "No debuggable apps available" : "No launchable apps available")
     }
 
     // MARK: Apps List
-
-    private func debuggableSections(
-        apps: [(key: String, value: String)],
-        favorites: [String],
-        recents: [String]
-    ) -> some View {
-        VStack(spacing: 18) {
-            if !favorites.isEmpty {
-                glassSection(
-                    title: String(format: "Favorites (%d/4)".localized, favorites.count)
-                ) {
-                    LazyVStack(spacing: 12) {
-                        ForEach(favorites, id: \.self) { bundleID in
-                            AppButton(
-                                bundleID: bundleID,
-                                appName: viewModel.debuggableApps[bundleID] ?? bundleID,
-                                recentApps: $recentApps,
-                                favoriteApps: $favoriteApps,
-                                appIcons: $appIcons,
-                                onSelectApp: onSelectApp,
-                                sharedDefaults: sharedDefaults,
-                                performanceMode: performanceMode
-                            )
-                        }
-                    }
-                }
-            }
-
-            if !recents.isEmpty {
-                glassSection(title: "Recents".localized) {
-                    LazyVStack(spacing: 12) {
-                        ForEach(recents, id: \.self) { bundleID in
-                            AppButton(
-                                bundleID: bundleID,
-                                appName: viewModel.debuggableApps[bundleID] ?? bundleID,
-                                recentApps: $recentApps,
-                                favoriteApps: $favoriteApps,
-                                appIcons: $appIcons,
-                                onSelectApp: onSelectApp,
-                                sharedDefaults: sharedDefaults,
-                                performanceMode: performanceMode
-                            )
-                        }
-                    }
-                }
-            }
-
-            glassSection(title: "All Applications".localized) {
-                LazyVStack(spacing: 12) {
-                    ForEach(apps, id: \.key) { bundleID, appName in
-                        AppButton(
-                            bundleID: bundleID,
-                            appName: appName,
-                            recentApps: $recentApps,
-                            favoriteApps: $favoriteApps,
-                            appIcons: $appIcons,
-                            onSelectApp: onSelectApp,
-                            sharedDefaults: sharedDefaults,
-                            performanceMode: performanceMode
-                        )
-                    }
-                }
-            }
-        }
-    }
 
     private func prefetchPriorityIcons(limit: Int = 32) {
         guard loadAppIconsOnJIT else { return }
@@ -402,264 +274,136 @@ struct InstalledAppsListView: View {
         guard !toPrefetch.isEmpty else { return }
 
         prefetchedBundleIDs.formUnion(toPrefetch)
-        IconCache.shared.prefetchIcons(for: toPrefetch)
-    }
-
-    private func launchSections(apps: [(key: String, value: String)]) -> some View {
-        glassSection(title: "Launchable Apps".localized) {
-            LazyVStack(spacing: 12) {
-                ForEach(apps, id: \.key) { bundleID, appName in
-                    let isPinned = pinnedSystemApps.contains(bundleID)
-                    LaunchAppRow(
-                        bundleID: bundleID,
-                        appName: appName,
-                        isLaunching: launchingBundles.contains(bundleID),
-                        appIcons: $appIcons,
-                        performanceMode: performanceMode
-                    ) {
-                        startLaunching(bundleID: bundleID)
-                    }
-                    .overlay(alignment: .topTrailing) {
-                        if isPinned {
-                            Image(systemName: "star.fill")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(.yellow)
-                                .padding(6)
-                        }
-                    }
-                    .contextMenu {
-                        Button((isPinned ? "Remove from Home" : "Add to Home").localized, systemImage: isPinned ? "star.slash" : "star") {
-                            toggleSystemPin(bundleID: bundleID, appName: appName)
-                        }
-                        Button("Copy Bundle ID".localized, systemImage: "doc.on.doc") {
-                            UIPasteboard.general.string = bundleID
-                            Haptics.light()
-                        }
-                    }
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button {
-                            toggleSystemPin(bundleID: bundleID, appName: appName)
-                        } label: {
-                            Label((isPinned ? "Unpin" : "Pin").localized, systemImage: "star")
-                        }
-                        .tint(.yellow)
-                    }
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var tabbedContent: some View {
-        VStack(spacing: 14) {
-            Picker("", selection: $selectedTab) {
-                ForEach(AppListTab.allCases) { tab in
-                    Text(tab.title.localized)
-                        .tag(tab)
-                }
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 20)
-
-            tabContent(for: selectedTab)
-        }
+        AppIconRepository.prefetch(bundleIDs: toPrefetch)
     }
 
     @ViewBuilder
     private func tabContent(for tab: AppListTab) -> some View {
         switch tab {
         case .debuggable:
-            if viewModel.debuggableApps.isEmpty {
-                VStack {
-                    Spacer(minLength: 0)
-                    emptyState(for: .debuggable)
-                    Spacer(minLength: 0)
+            List {
+                if let error = viewModel.lastError {
+                    Section {
+                        Text(error).font(.footnote).foregroundStyle(.orange)
+                    }
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 24)
-                .transition(.opacity.combined(with: .scale))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                ScrollView {
-                    VStack(spacing: 18) {
-                        debuggableSearchBar
-
-                        if let error = viewModel.lastError {
-                            errorBanner(error)
+                if filteredDebuggableApps.isEmpty && !viewModel.isLoading {
+                    Section {
+                        VStack(spacing: 8) {
+                            Image(systemName: debuggableSearchIsActive ? "text.magnifyingglass" : "magnifyingglass")
+                                .font(.system(size: 36)).foregroundStyle(.secondary)
+                            Text(debuggableSearchIsActive ? "No matching apps".localized : "No JIT Apps Found".localized)
+                                .font(.headline)
+                            Text(debuggableSearchIsActive
+                                 ? "Try a different name or bundle identifier.".localized
+                                 : "StikDebug can only connect to apps with the \"get-task-allow\" entitlement.".localized)
+                                .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
                         }
-
-                        if filteredDebuggableApps.isEmpty {
-                            debuggableSearchEmptyState
-                                .transition(.opacity.combined(with: .scale))
-                        } else {
-                            debuggableSections(
-                                apps: filteredDebuggableApps,
-                                favorites: filteredFavoriteBundles,
-                                recents: filteredRecentBundles
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .listRowBackground(Color.clear)
+                    }
+                } else {
+                    if !filteredFavoriteBundles.isEmpty {
+                        Section(String(format: "Favorites (%d/4)".localized, filteredFavoriteBundles.count)) {
+                            ForEach(filteredFavoriteBundles, id: \.self) { bundleID in
+                                AppButton(
+                                    bundleID: bundleID,
+                                    appName: viewModel.debuggableApps[bundleID] ?? fallbackReadableName(from: bundleID),
+                                    recentApps: $recentApps, favoriteApps: $favoriteApps,
+                                    onSelectApp: onSelectApp, sharedDefaults: sharedDefaults, performanceMode: performanceMode
+                                )
+                            }
+                        }
+                    }
+                    if !filteredRecentBundles.isEmpty {
+                        Section("Recents".localized) {
+                            ForEach(filteredRecentBundles, id: \.self) { bundleID in
+                                AppButton(
+                                    bundleID: bundleID,
+                                    appName: viewModel.debuggableApps[bundleID] ?? fallbackReadableName(from: bundleID),
+                                    recentApps: $recentApps, favoriteApps: $favoriteApps,
+                                    onSelectApp: onSelectApp, sharedDefaults: sharedDefaults, performanceMode: performanceMode
+                                )
+                            }
+                        }
+                    }
+                    Section("Apps with get-task-allow".localized) {
+                        ForEach(filteredDebuggableApps, id: \.key) { bundleID, appName in
+                            AppButton(
+                                bundleID: bundleID, appName: appName,
+                                recentApps: $recentApps, favoriteApps: $favoriteApps,
+                                onSelectApp: onSelectApp, sharedDefaults: sharedDefaults, performanceMode: performanceMode
                             )
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 24)
                 }
             }
+            .listStyle(.insetGrouped)
+
         case .launch:
-            ScrollView {
-                VStack(spacing: 18) {
-                    launchSearchBar
-
-                    if let error = viewModel.lastError {
-                        errorBanner(error)
+            List {
+                if let error = viewModel.lastError {
+                    Section {
+                        Text(error).font(.footnote).foregroundStyle(.orange)
                     }
-
-                    if filteredLaunchApps.isEmpty {
-                        if launchSearchIsActive {
-                            launchSearchEmptyState
-                                .transition(.opacity.combined(with: .scale))
-                        } else {
-                            emptyState(for: .launch)
-                                .transition(.opacity.combined(with: .scale))
+                }
+                if filteredLaunchApps.isEmpty {
+                    Section {
+                        VStack(spacing: 8) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 36)).foregroundStyle(.secondary)
+                            Text(launchSearchIsActive ? "No matches".localized : "No Apps Found".localized)
+                                .font(.headline)
+                            Text(launchSearchIsActive
+                                 ? "Try another name or bundle identifier.".localized
+                                 : "Once your device pairing file is imported and CoreDevice is connected, all apps will appear here.".localized)
+                                .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
                         }
-                    } else {
-                        launchSections(apps: filteredLaunchApps)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .listRowBackground(Color.clear)
+                    }
+                } else {
+                    Section("All Apps".localized) {
+                        ForEach(filteredLaunchApps, id: \.key) { bundleID, appName in
+                            let isPinned = pinnedSystemApps.contains(bundleID)
+                            LaunchAppRow(
+                                bundleID: bundleID, appName: appName,
+                                isLaunching: launchingBundles.contains(bundleID),
+                                performanceMode: performanceMode
+                            ) { startLaunching(bundleID: bundleID) }
+                            .overlay(alignment: .topTrailing) {
+                                if isPinned {
+                                    Image(systemName: "star.fill")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundStyle(.yellow).padding(6)
+                                }
+                            }
+                            .contextMenu {
+                                Button((isPinned ? "Remove from Home" : "Add to Home").localized,
+                                       systemImage: isPinned ? "star.slash" : "star") {
+                                    toggleSystemPin(bundleID: bundleID, appName: appName)
+                                }
+                                Button("Copy Bundle ID".localized, systemImage: "doc.on.doc") {
+                                    UIPasteboard.general.string = bundleID
+                                    Haptics.light()
+                                }
+                            }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                Button {
+                                    toggleSystemPin(bundleID: bundleID, appName: appName)
+                                } label: {
+                                    Label((isPinned ? "Unpin" : "Pin").localized, systemImage: "star")
+                                }
+                                .tint(.yellow)
+                            }
+                        }
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 24)
             }
+            .listStyle(.insetGrouped)
         }
-    }
-
-    private var debuggableSearchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-
-            TextField("Search apps or bundle ID".localized, text: $debuggableSearchText)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled(true)
-
-            if debuggableSearchIsActive {
-                Button {
-                    debuggableSearchText = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 16))
-                        .foregroundStyle(.secondary)
-                }
-                .accessibilityLabel("Clear search".localized)
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(.white.opacity(0.08), lineWidth: 1)
-                )
-        )
-    }
-
-    private var debuggableSearchEmptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "text.magnifyingglass")
-                .font(.system(size: 44, weight: .regular))
-                .foregroundStyle(.secondary)
-
-            Text("No matching apps".localized)
-                .font(.title3.weight(.semibold))
-
-            Text("Try a different name or bundle identifier.".localized)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-        }
-        .padding(24)
-        .glassCard(cornerRadius: 20, material: .thinMaterial, strokeOpacity: 0.12)
-    }
-
-    private var launchSearchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-
-            TextField("Search".localized, text: $launchSearchText)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled(true)
-
-            if launchSearchIsActive {
-                Button {
-                    launchSearchText = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 16))
-                        .foregroundStyle(.secondary)
-                }
-                .accessibilityLabel("Clear search".localized)
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(.white.opacity(0.08), lineWidth: 1)
-                )
-        )
-    }
-
-    private var launchSearchEmptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 44, weight: .regular))
-                .foregroundStyle(.secondary)
-
-            Text("No matches".localized)
-                .font(.title3.weight(.semibold))
-
-            Text("Try another name or bundle identifier.".localized)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-        }
-        .padding(24)
-        .glassCard(cornerRadius: 20, material: .thinMaterial, strokeOpacity: 0.12)
-    }
-
-    private func errorBanner(_ message: String) -> some View {
-        Text(message)
-            .font(.footnote)
-            .foregroundStyle(.orange)
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(.white.opacity(0.12), lineWidth: 1)
-                    )
-            )
-    }
-
-    // MARK: Section Wrapper
-
-    private func glassSection<Content: View>(
-        title: String,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text(title)
-                .font(.headline)
-                .foregroundStyle(.secondary)
-                .accessibilityAddTraits(.isHeader)
-
-            content()
-        }
-        .padding(20)
-        .glassCard(material: .thinMaterial, strokeOpacity: 0.12)
     }
 
     // MARK: Persistence gate (avoid redundant writes + reloads)
@@ -670,7 +414,7 @@ struct InstalledAppsListView: View {
         let prevF = (sharedDefaults.array(forKey: "favoriteApps") as? [String]) ?? []
         let prevPinned = (sharedDefaults.array(forKey: "pinnedSystemApps") as? [String]) ?? []
         let prevPinnedNames = (sharedDefaults.dictionary(forKey: "pinnedSystemAppNames") as? [String: String]) ?? [:]
-        let prevFavNames = (sharedDefaults.dictionary(forKey: "favoriteAppNames") as? [String: String]) ?? [:]
+        let prevFavNames = (sharedDefaults.dictionary(forKey: ScriptStore.favoriteAppNamesKey) as? [String: String]) ?? [:]
 
         if prevR != recentApps {
             sharedDefaults.set(recentApps, forKey: "recentApps")
@@ -697,7 +441,7 @@ struct InstalledAppsListView: View {
             return (id, name)
         })
         if prevFavNames != computedFavNames {
-            sharedDefaults.set(computedFavNames, forKey: "favoriteAppNames")
+            sharedDefaults.set(computedFavNames, forKey: ScriptStore.favoriteAppNamesKey)
             touched = true
         }
 
@@ -773,20 +517,37 @@ struct AppButton: View {
 
     @Binding var recentApps: [String]
     @Binding var favoriteApps: [String]
-    @Binding var appIcons: [String: UIImage]
 
     @AppStorage("loadAppIconsOnJIT") private var loadAppIconsOnJIT = true
     @AppStorage("enableAdvancedOptions") private var enableAdvancedOptions = false
-    @AppStorage("appTheme") private var appThemeRaw: String = AppTheme.system.rawValue
-    @Environment(\.themeExpansionManager) private var themeExpansion
 
     var onSelectApp: (String) -> Void
     let sharedDefaults: UserDefaults
     let performanceMode: Bool
 
     @State private var showScriptPicker = false
+    @State private var assignedScriptName: String?
+    @StateObject private var iconLoader: IconLoader
 
-    private var rowBackgroundStyle: BackgroundStyle { themeExpansion?.backgroundStyle(for: appThemeRaw) ?? AppTheme.system.backgroundStyle }
+    init(
+        bundleID: String,
+        appName: String,
+        recentApps: Binding<[String]>,
+        favoriteApps: Binding<[String]>,
+        onSelectApp: @escaping (String) -> Void,
+        sharedDefaults: UserDefaults,
+        performanceMode: Bool
+    ) {
+        self.bundleID = bundleID
+        self.appName = appName
+        self._recentApps = recentApps
+        self._favoriteApps = favoriteApps
+        self.onSelectApp = onSelectApp
+        self.sharedDefaults = sharedDefaults
+        self.performanceMode = performanceMode
+        _iconLoader = StateObject(wrappedValue: IconLoader(bundleID: bundleID))
+        _assignedScriptName = State(initialValue: AppButton.currentAssignment(for: bundleID))
+    }
 
     var body: some View {
         Button(action: selectApp) {
@@ -815,10 +576,7 @@ struct AppButton: View {
                         .accessibilityHidden(true)
                 }
             }
-            .padding(.vertical, loadAppIconsOnJIT ? 8 : 12)
-            .padding(.horizontal, 12)
-            .background(rowBackground)
-            .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .padding(.vertical, loadAppIconsOnJIT ? 4 : 8)
         }
         .buttonStyle(.plain)
         .contextMenu {
@@ -838,6 +596,13 @@ struct AppButton: View {
             if enableAdvancedOptions {
                 Button { showScriptPicker = true } label: {
                     Label("Assign Script", systemImage: "chevron.left.slash.chevron.right")
+                }
+                if assignedScriptName != nil {
+                    Button {
+                        resetScriptAssignment()
+                    } label: {
+                        Label("Reset Script", systemImage: "arrow.uturn.left")
+                    }
                 }
             }
         }
@@ -864,7 +629,12 @@ struct AppButton: View {
         }
         .onAppear {
             if loadAppIconsOnJIT {
-                loadAppIcon(for: bundleID)
+                iconLoader.beginLoading()
+            }
+        }
+        .onChange(of: loadAppIconsOnJIT) { _, newValue in
+            if newValue {
+                iconLoader.beginLoading()
             }
         }
         .accessibilityElement(children: .ignore)
@@ -876,7 +646,7 @@ struct AppButton: View {
 
     private var iconView: some View {
         Group {
-            if loadAppIconsOnJIT, let image = appIcons[bundleID] {
+            if loadAppIconsOnJIT, let image = iconLoader.image {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -896,12 +666,6 @@ struct AppButton: View {
             }
         }
         .accessibilityHidden(true)
-    }
-
-    // MARK: Row Background
-
-    private var rowBackground: some View {
-        ThemedRowBackground(performanceMode: performanceMode, style: rowBackgroundStyle, cornerRadius: 16)
     }
 
     // MARK: Actions
@@ -929,14 +693,23 @@ struct AppButton: View {
     }
 
     private func assignScript(_ url: URL?) {
-        var mapping = UserDefaults.standard.dictionary(forKey: "BundleScriptMap") as? [String: String] ?? [:]
         if let url {
-            mapping[bundleID] = url.lastPathComponent
+            let filename = url.lastPathComponent
+            ScriptStore.updateAssignedScriptName(filename, for: bundleID)
+            assignedScriptName = filename
         } else {
-            mapping.removeValue(forKey: bundleID)
+            ScriptStore.updateAssignedScriptName(nil, for: bundleID)
+            assignedScriptName = nil
         }
-        UserDefaults.standard.set(mapping, forKey: "BundleScriptMap")
         Haptics.light()
+    }
+
+    private func resetScriptAssignment() {
+        assignScript(nil)
+    }
+
+    private static func currentAssignment(for bundleID: String) -> String? {
+        ScriptStore.assignedScriptName(for: bundleID)
     }
 
     private func persistIfChanged() {
@@ -954,41 +727,36 @@ struct AppButton: View {
         }
         if touched { WidgetCenter.shared.reloadAllTimelines() }
     }
-
-    private func loadAppIcon(for bundleID: String) {
-        guard loadAppIconsOnJIT else { return }
-        guard appIcons[bundleID] == nil else { return }
-        IconCache.shared.fetchIcon(for: bundleID, priority: .veryHigh) { image in
-            guard let image else { return }
-            let shouldAnimate = appIcons[bundleID] == nil
-            if shouldAnimate {
-                withAnimation(.linear(duration: 0.12)) {
-                    appIcons[bundleID] = image
-                }
-            } else {
-                appIcons[bundleID] = image
-            }
-        }
-    }
 }
 
-// MARK: - IconCache
+// MARK: - Launch Row
 
 struct LaunchAppRow: View {
     let bundleID: String
     let appName: String
     let isLaunching: Bool
 
-    @Binding var appIcons: [String: UIImage]
-
     @AppStorage("loadAppIconsOnJIT") private var loadAppIconsOnJIT = true
-    @AppStorage("appTheme") private var appThemeRaw: String = AppTheme.system.rawValue
-    @Environment(\.themeExpansionManager) private var themeExpansion
 
     let performanceMode: Bool
     var launchAction: () -> Void
 
-    private var rowBackgroundStyle: BackgroundStyle { themeExpansion?.backgroundStyle(for: appThemeRaw) ?? AppTheme.system.backgroundStyle }
+    @StateObject private var iconLoader: IconLoader
+
+    init(
+        bundleID: String,
+        appName: String,
+        isLaunching: Bool,
+        performanceMode: Bool,
+        launchAction: @escaping () -> Void
+    ) {
+        self.bundleID = bundleID
+        self.appName = appName
+        self.isLaunching = isLaunching
+        self.performanceMode = performanceMode
+        self.launchAction = launchAction
+        _iconLoader = StateObject(wrappedValue: IconLoader(bundleID: bundleID))
+    }
 
     var body: some View {
         Button {
@@ -1014,30 +782,27 @@ struct LaunchAppRow: View {
                 Spacer()
 
                 if isLaunching {
-                    ProgressView()
-                        .controlSize(.small)
+                    ProgressView().controlSize(.small)
                 } else {
                     Text("Launch".localized)
                         .font(.footnote.weight(.semibold))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule()
-                                .fill(Color.accentColor.opacity(0.18))
-                        )
+                        .padding(.horizontal, 12).padding(.vertical, 6)
+                        .background(Capsule().fill(Color.accentColor.opacity(0.18)))
                         .foregroundStyle(Color.accentColor)
                 }
             }
-            .padding(.vertical, loadAppIconsOnJIT ? 8 : 12)
-            .padding(.horizontal, 12)
-            .background(rowBackground)
-            .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .padding(.vertical, loadAppIconsOnJIT ? 4 : 8)
         }
         .buttonStyle(.plain)
         .disabled(isLaunching)
         .onAppear {
             if loadAppIconsOnJIT {
-                loadAppIcon(for: bundleID)
+                iconLoader.beginLoading()
+            }
+        }
+        .onChange(of: loadAppIconsOnJIT) { _, newValue in
+            if newValue {
+                iconLoader.beginLoading()
             }
         }
         .accessibilityElement(children: .ignore)
@@ -1047,7 +812,7 @@ struct LaunchAppRow: View {
 
     private var iconView: some View {
         Group {
-            if loadAppIconsOnJIT, let image = appIcons[bundleID] {
+            if loadAppIconsOnJIT, let image = iconLoader.image {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -1069,216 +834,199 @@ struct LaunchAppRow: View {
         .accessibilityHidden(true)
     }
 
-    private var rowBackground: some View {
-        ThemedRowBackground(performanceMode: performanceMode, style: rowBackgroundStyle, cornerRadius: 16)
+}
+
+private actor IconFetchRegistry {
+    private var tasks: [String: Task<UIImage?, Never>] = [:]
+
+    func task(for bundleID: String, create: () -> Task<UIImage?, Never>) -> Task<UIImage?, Never> {
+        if let existing = tasks[bundleID] {
+            return existing
+        }
+        let task = create()
+        tasks[bundleID] = task
+        return task
     }
 
-    private func loadAppIcon(for bundleID: String) {
-        guard loadAppIconsOnJIT else { return }
-        guard appIcons[bundleID] == nil else { return }
-        IconCache.shared.fetchIcon(for: bundleID, priority: .veryHigh) { image in
-            guard let image else { return }
-            let shouldAnimate = appIcons[bundleID] == nil
-            if shouldAnimate {
-                withAnimation(.linear(duration: 0.12)) {
-                    appIcons[bundleID] = image
-                }
-            } else {
-                appIcons[bundleID] = image
-            }
-        }
+    func clear(bundleID: String) {
+        tasks[bundleID] = nil
     }
 }
 
-private struct ThemedRowBackground: View {
-    var performanceMode: Bool
-    var style: BackgroundStyle
-    var cornerRadius: CGFloat
+private actor AsyncSemaphore {
+    private var permits: Int
+    private var waiters: [CheckedContinuation<Void, Never>] = []
 
-    var body: some View {
-        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-
-        return Group {
-            if performanceMode {
-                shape
-                    .fill(Color(.secondarySystemBackground).opacity(0.65))
-                    .overlay(shape.stroke(Color.white.opacity(0.10), lineWidth: 1))
-            } else {
-                ZStack {
-                    shape.fill(.ultraThinMaterial)
-                    themedOverlay(shape: shape)
-                    shape.stroke(Color.white.opacity(0.15), lineWidth: 1)
-                }
-                .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 3)
-            }
-        }
+    init(permits: Int) {
+        self.permits = permits
     }
 
-    @ViewBuilder
-    private func themedOverlay(shape: RoundedRectangle) -> some View {
-        switch style {
-        case .staticGradient(let colors), .customGradient(let colors):
-            shape
-                .fill(
-                    LinearGradient(
-                        gradient: Gradient(colors: normalized(colors)),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .opacity(0.32)
-        case .animatedGradient(let colors, _):
-            shape
-                .fill(
-                    LinearGradient(
-                        gradient: Gradient(colors: normalized(colors)),
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .opacity(0.38)
-        case .blobs(let colors, _):
-            shape
-                .fill(
-                    LinearGradient(
-                        gradient: Gradient(colors: normalized(colors)),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .opacity(0.40)
-        case .particles(let particle, _):
-            shape.fill(particle.opacity(0.18))
-        }
-    }
-
-    private func normalized(_ colors: [Color]) -> [Color] {
-        if colors.count >= 2 { return colors }
-        if let first = colors.first { return [first, first.opacity(0.6)] }
-        return [Color.blue, Color.purple]
-    }
-}
-
-final class IconCache {
-    static let shared = IconCache()
-
-    private let mem = NSCache<NSString, UIImage>()
-    private let queue = OperationQueue()
-    private let callbackQueue = DispatchQueue(label: "com.stik.iconcache.callbacks")
-    private var pendingCallbacks: [String: [(UIImage?) -> Void]] = [:]
-    private var pendingOperations: [String: Operation] = [:]
-
-    private init() {
-        queue.maxConcurrentOperationCount = 4
-        queue.qualityOfService = .userInitiated
-        mem.countLimit = 1000
-        mem.totalCostLimit = 64 * 1024 * 1024
-    }
-
-    func fetchIcon(
-        for bundleID: String,
-        priority: Operation.QueuePriority = .normal,
-        completion: @escaping (UIImage?) -> Void
-    ) {
-        if let memImage = mem.object(forKey: bundleID as NSString) {
-            DispatchQueue.main.async { completion(memImage) }
+    func acquire() async {
+        if permits > 0 {
+            permits -= 1
             return
         }
-
-        var shouldStartLoad = false
-        callbackQueue.sync {
-            if var existing = pendingCallbacks[bundleID] {
-                existing.append(completion)
-                pendingCallbacks[bundleID] = existing
-                if let op = pendingOperations[bundleID], op.queuePriority.rawValue < priority.rawValue {
-                    op.queuePriority = priority
-                }
-            } else {
-                pendingCallbacks[bundleID] = [completion]
-                shouldStartLoad = true
-            }
-        }
-
-        guard shouldStartLoad else { return }
-
-        let operation = BlockOperation { [weak self] in
-            guard let self else { return }
-
-            var loadedFromDisk = false
-            var result = self.diskCachedIcon(for: bundleID)
-            if result != nil {
-                loadedFromDisk = true
-            }
-
-            if result == nil {
-                let semaphore = DispatchSemaphore(value: 0)
-                AppStoreIconFetcher.getIcon(for: bundleID) { image in
-                    result = image
-                    semaphore.signal()
-                }
-                _ = semaphore.wait(timeout: .now() + 10)
-            }
-
-            if let image = result {
-                let prepared = self.prepareForDisplay(image)
-                let cost = Int(prepared.size.width * prepared.size.height * prepared.scale * prepared.scale)
-                self.mem.setObject(prepared, forKey: bundleID as NSString, cost: cost)
-                if !loadedFromDisk {
-                    saveIconToGroup(prepared, bundleID: bundleID)
-                }
-                result = prepared
-            }
-
-            let callbacks = self.callbackQueue.sync { () -> [(UIImage?) -> Void] in
-                let handlers = self.pendingCallbacks[bundleID] ?? []
-                self.pendingCallbacks[bundleID] = nil
-                self.pendingOperations[bundleID] = nil
-                return handlers
-            }
-
-            DispatchQueue.main.async {
-                callbacks.forEach { $0(result) }
-            }
-        }
-        operation.queuePriority = priority
-
-        callbackQueue.sync {
-            pendingOperations[bundleID] = operation
-        }
-
-        queue.addOperation(operation)
-    }
-
-    func prefetchIcons(for bundleIDs: [String]) {
-        let uniqueIDs = Set(bundleIDs)
-        for bundleID in uniqueIDs {
-            fetchIcon(for: bundleID, priority: .veryLow) { _ in }
+        await withCheckedContinuation { continuation in
+            waiters.append(continuation)
         }
     }
 
-    private func diskCachedIcon(for bundleID: String) -> UIImage? {
-        guard let containerURL = FileManager.default
-            .containerURL(forSecurityApplicationGroupIdentifier: "group.com.stik.sj")
-        else { return nil }
+    func release() {
+        if let next = waiters.first {
+            waiters.removeFirst()
+            next.resume()
+        } else {
+            permits += 1
+        }
+    }
+}
 
-        let iconsDir = containerURL.appendingPathComponent("icons", isDirectory: true)
-        let fileURL = iconsDir.appendingPathComponent("\(bundleID).png")
-        guard FileManager.default.fileExists(atPath: fileURL.path) else { return nil }
+enum AppIconRepository {
+    private static let memory: NSCache<NSString, UIImage> = {
+        let cache = NSCache<NSString, UIImage>()
+        cache.countLimit = 2000
+        cache.totalCostLimit = 64 * 1024 * 1024
+        return cache
+    }()
 
-        guard let data = try? Data(contentsOf: fileURL) else {
-            try? FileManager.default.removeItem(at: fileURL)
+    private static let diskQueue = DispatchQueue(label: "com.stik.iconcache.disk", qos: .utility)
+    private static let fetchSemaphore = AsyncSemaphore(permits: 4)
+    private static let registry = IconFetchRegistry()
+    private static let appGroupIdentifier = "group.com.stik.sj"
+
+    static func cachedImage(for bundleID: String) -> UIImage? {
+        memory.object(forKey: bundleID as NSString)
+    }
+
+    static func image(for bundleID: String) async -> UIImage? {
+        if let mem = cachedImage(for: bundleID) {
+            return mem
+        }
+
+        if let disk = await loadFromDisk(bundleID: bundleID) {
+            storeInMemory(disk, for: bundleID)
+            return disk
+        }
+
+        return await fetchAndStore(bundleID: bundleID)
+    }
+
+    static func prefetch(bundleIDs: [String]) {
+        let unique = Set(bundleIDs)
+        for bundleID in unique {
+            Task.detached(priority: .utility) {
+                _ = await image(for: bundleID)
+            }
+        }
+    }
+
+    static func removeFromCache(bundleIDs: [String]) {
+        guard !bundleIDs.isEmpty else { return }
+        for id in bundleIDs {
+            memory.removeObject(forKey: id as NSString)
+        }
+        diskQueue.async {
+            for id in bundleIDs {
+                guard let url = iconURL(for: id) else { continue }
+                try? FileManager.default.removeItem(at: url)
+            }
+        }
+    }
+
+    private static func fetchAndStore(bundleID: String) async -> UIImage? {
+        let task = await registry.task(for: bundleID) {
+            Task.detached(priority: .utility) {
+                await fetchSemaphore.acquire()
+
+                let result: UIImage?
+                if let fetched = await fetchFromSource(bundleID: bundleID) {
+                    let prepared = prepareForDisplay(fetched)
+                    store(prepared, for: bundleID)
+                    result = prepared
+                } else {
+                    result = nil
+                }
+
+                await fetchSemaphore.release()
+                await registry.clear(bundleID: bundleID)
+                return result
+            }
+        }
+        return await task.value
+    }
+
+    private static func fetchFromSource(bundleID: String) async -> UIImage? {
+        await withCheckedContinuation { continuation in
+            AppStoreIconFetcher.getIcon(for: bundleID) { image in
+                continuation.resume(returning: image)
+            }
+        }
+    }
+
+    private static func loadFromDisk(bundleID: String) async -> UIImage? {
+        await withCheckedContinuation { continuation in
+            diskQueue.async {
+                guard let url = iconURL(for: bundleID),
+                      FileManager.default.fileExists(atPath: url.path) else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                guard let data = try? Data(contentsOf: url) else {
+                    try? FileManager.default.removeItem(at: url)
+                    continuation.resume(returning: nil)
+                    return
+                }
+                guard let image = UIImage(data: data, scale: UIScreen.main.scale) else {
+                    try? FileManager.default.removeItem(at: url)
+                    continuation.resume(returning: nil)
+                    return
+                }
+                continuation.resume(returning: prepareForDisplay(image))
+            }
+        }
+    }
+
+    private static func store(_ image: UIImage, for bundleID: String) {
+        storeInMemory(image, for: bundleID)
+        storeOnDisk(image, bundleID: bundleID)
+    }
+
+    private static func storeInMemory(_ image: UIImage, for bundleID: String) {
+        memory.setObject(image, forKey: bundleID as NSString, cost: memoryCost(for: image))
+    }
+
+    private static func storeOnDisk(_ image: UIImage, bundleID: String) {
+        diskQueue.async {
+            guard let url = iconURL(for: bundleID),
+                  let data = image.pngData() else { return }
+            do {
+                try data.write(to: url, options: .atomic)
+            } catch {
+                // Best-effort cache write.
+            }
+        }
+    }
+
+    private static func iconURL(for bundleID: String) -> URL? {
+        guard let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) else {
             return nil
         }
-
-        if let image = UIImage(data: data, scale: UIScreen.main.scale) {
-            return image
+        let directory = container.appendingPathComponent("icons", isDirectory: true)
+        do {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        } catch {
+            return nil
         }
-
-        try? FileManager.default.removeItem(at: fileURL)
-        return nil
+        return directory.appendingPathComponent("\(bundleID).png")
     }
 
-    private func prepareForDisplay(_ image: UIImage) -> UIImage {
+    private static func memoryCost(for image: UIImage) -> Int {
+        let width = Int(image.size.width * image.scale)
+        let height = Int(image.size.height * image.scale)
+        return max(width * height * 4, 1)
+    }
+
+    private static func prepareForDisplay(_ image: UIImage) -> UIImage {
         if #available(iOS 15.0, *) {
             return image.preparingForDisplay() ?? image
         }
@@ -1286,55 +1034,41 @@ final class IconCache {
     }
 }
 
-// MARK: - Shared UI Bits
+@MainActor
+final class IconLoader: ObservableObject {
+    @Published private(set) var image: UIImage?
 
-private struct BackgroundGradient: View {
-    var body: some View {
-        LinearGradient(
-            colors: [Color(UIColor.systemBackground), Color(UIColor.secondarySystemBackground)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+    private let bundleID: String
+    private var didStart = false
+
+    init(bundleID: String) {
+        self.bundleID = bundleID
+        if let cached = AppIconRepository.cachedImage(for: bundleID) {
+            image = cached
+            didStart = true
+        }
     }
-}
 
-private struct GlassCard: ViewModifier {
-    var cornerRadius: CGFloat = 20
-    var material: Material = .ultraThinMaterial
-    var strokeOpacity: Double = 0.15
-    func body(content: Content) -> some View {
-        content
-            .background(
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(material)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .stroke(.white.opacity(strokeOpacity), lineWidth: 1)
-                    )
-            )
-            .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
+    func beginLoading() {
+        if image != nil {
+            didStart = true
+            return
+        }
+        guard !didStart else { return }
+        didStart = true
+
+        let targetID = bundleID
+        Task { [weak self] in
+            if let resolved = await AppIconRepository.image(for: targetID) {
+                guard let self else { return }
+                withAnimation(.linear(duration: 0.12)) {
+                    self.image = resolved
+                }
+            } else {
+                self?.didStart = false
+            }
+        }
     }
-}
-
-private extension View {
-    func glassCard(
-        cornerRadius: CGFloat = 20,
-        material: Material = .ultraThinMaterial,
-        strokeOpacity: Double = 0.15
-    ) -> some View {
-        modifier(GlassCard(cornerRadius: cornerRadius, material: material, strokeOpacity: strokeOpacity))
-    }
-}
-
-fileprivate func saveIconToGroup(_ image: UIImage, bundleID: String) {
-    guard let data = image.pngData(),
-          let container = FileManager.default
-            .containerURL(forSecurityApplicationGroupIdentifier: "group.to.appdb.jit-ios")
-    else { return }
-    let iconsDir = container.appendingPathComponent("icons", isDirectory: true)
-    try? FileManager.default.createDirectory(at: iconsDir, withIntermediateDirectories: true)
-    let fileURL = iconsDir.appendingPathComponent("\(bundleID).png")
-    try? data.write(to: fileURL)
 }
 
 enum Haptics {
@@ -1376,10 +1110,13 @@ extension Dictionary: @retroactive RawRepresentable where Key: Codable, Value: C
 
 // MARK: - Preview
 
-#Preview {
-    InstalledAppsListView { _ in }
-        .environment(\.colorScheme, .dark)
+struct InstalledAppsListView_Previews: PreviewProvider {
+    static var previews: some View {
+        InstalledAppsListView { _ in }
+            .environment(\.colorScheme, .dark)
+    }
 }
+
 
 class InstalledAppsViewModel: ObservableObject {
     @Published var debuggableApps: [String: String] = [:]
@@ -1389,8 +1126,15 @@ class InstalledAppsViewModel: ObservableObject {
     @Published var lastError: String? = nil
 
     private let workQueue = DispatchQueue(label: "com.stik.installedApps", qos: .userInitiated)
+    private let cache = UserDefaults(suiteName: "group.com.stik.sj") ?? .standard
+    private let cacheKeyDebuggable = "cachedDebuggableApps"
+    private let cacheKeyNonDebuggable = "cachedNonDebuggableApps"
+    private let cacheKeySystem = "cachedSystemApps"
 
-    init() { refreshAppLists() }
+    init() {
+        loadCachedApps()
+        refreshAppLists()
+    }
 
     func refreshAppLists() {
         isLoading = true
@@ -1424,18 +1168,43 @@ class InstalledAppsViewModel: ObservableObject {
                     self.nonDebuggableApps = nonDebuggable
                     self.systemApps = system
                     self.isLoading = false
+                    self.cacheApps(debuggable: debuggable, nonDebuggable: nonDebuggable, system: system)
                 }
             } catch {
                 DispatchQueue.main.async {
-                    self.debuggableApps = [:]
-                    self.nonDebuggableApps = [:]
-                    self.systemApps = [:]
                     self.isLoading = false
                     self.lastError = error.localizedDescription
-                    print("Failed to load apps: \(error)")
                 }
             }
         }
+    }
+
+    private func loadCachedApps() {
+        func decode(_ key: String) -> [String: String] {
+            guard let data = cache.data(forKey: key),
+                  let decoded = try? JSONDecoder().decode([String: String].self, from: data) else { return [:] }
+            return decoded
+        }
+
+        let cachedDebuggable = decode(cacheKeyDebuggable)
+        let cachedNonDebuggable = decode(cacheKeyNonDebuggable)
+        let cachedSystem = decode(cacheKeySystem)
+
+        if !cachedDebuggable.isEmpty || !cachedNonDebuggable.isEmpty || !cachedSystem.isEmpty {
+            debuggableApps = cachedDebuggable
+            nonDebuggableApps = cachedNonDebuggable
+            systemApps = cachedSystem
+        }
+    }
+
+    private func cacheApps(debuggable: [String: String], nonDebuggable: [String: String], system: [String: String]) {
+        func encode(_ value: [String: String]) -> Data? {
+            try? JSONEncoder().encode(value)
+        }
+
+        cache.set(encode(debuggable), forKey: cacheKeyDebuggable)
+        cache.set(encode(nonDebuggable), forKey: cacheKeyNonDebuggable)
+        cache.set(encode(system), forKey: cacheKeySystem)
     }
 
     func launchWithoutDebug(bundleID: String, completion: @escaping (Bool) -> Void) {
@@ -1447,4 +1216,3 @@ class InstalledAppsViewModel: ObservableObject {
         }
     }
 }
-

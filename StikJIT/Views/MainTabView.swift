@@ -6,27 +6,73 @@
 //
 
 import SwiftUI
+import UIKit
 import AppdbSDK
 
+private struct TabDescriptor: Identifiable {
+    let id: String
+    let title: String
+    let systemImage: String
+    let builder: () -> AnyView
+}
+
+extension Notification.Name {
+    static let switchToTab = Notification.Name("MainTabSwitchNotification")
+}
+
 struct MainTabView: View {
-    @AppStorage("customAccentColor") private var customAccentColorHex: String = ""
-    @AppStorage("appTheme") private var appThemeRaw: String = AppTheme.system.rawValue
-    @State private var selection: Int = 0
+    @AppStorage(TabConfiguration.storageKey) private var enabledTabIdentifiers: String = TabConfiguration.defaultRawValue
+    @AppStorage("primaryTabSelection") private var selection: String = TabConfiguration.defaultIDs.first ?? "home"
+    @State private var switchObserver: Any?
+    @State private var detachedTab: TabDescriptor?
+    @State private var didSetInitialHome = false
+    @State private var didCheckForUpdate = false
+    @State private var showUpdateAlert = false
 
-    // Update checking
-    @State private var showForceUpdate: Bool = false
-    @State private var latestVersion: String? = nil
-
-    @Environment(\.themeExpansionManager) private var themeExpansion
-
-    private var accentColor: Color {
-        themeExpansion?.resolvedAccentColor(from: customAccentColorHex) ?? .blue
+    private var configurableTabs: [TabDescriptor] {
+        let tabs: [TabDescriptor] = [
+            TabDescriptor(id: "home", title: "Apps", systemImage: "square.grid.2x2") { AnyView(HomeView()) },
+            TabDescriptor(id: "scripts", title: "Scripts", systemImage: "scroll") { AnyView(ScriptListView()) },
+            TabDescriptor(id: "tools", title: "Tools", systemImage: "wrench.and.screwdriver") { AnyView(ToolsView()) },
+            TabDescriptor(id: "deviceinfo", title: "Device Info", systemImage: "iphone.and.arrow.forward") { AnyView(DeviceInfoView()) },
+            TabDescriptor(id: "profiles", title: "App Expiry", systemImage: "calendar.badge.clock") { AnyView(ProfileView()) },
+            TabDescriptor(id: "processes", title: "Processes", systemImage: "rectangle.stack.person.crop") { AnyView(ProcessInspectorView()) },
+            TabDescriptor(id: "location", title: "Location", systemImage: "location") { AnyView(LocationSimulationView()) }
+        ]
+        return tabs
     }
     
-    private var preferredScheme: ColorScheme? {
-        themeExpansion?.preferredColorScheme(for: appThemeRaw)
+    private var availableTabs: [TabDescriptor] {
+        configurableTabs
     }
-
+    
+    private let settingsTab = TabDescriptor(id: "settings", title: "Settings", systemImage: "gearshape.fill") {
+        AnyView(SettingsView())
+    }
+    
+    private var selectedTabDescriptors: [TabDescriptor] {
+        let ids = TabConfiguration.sanitize(raw: enabledTabIdentifiers)
+        return ids.compactMap { id in
+            availableTabs.first(where: { $0.id == id })
+        }
+    }
+    
+    private func ensureSelectionIsValid() {
+        let ids = displayTabs.map { $0.id }
+        if ids.contains(selection) {
+            return
+        }
+        selection = ids.first ?? settingsTab.id
+    }
+    
+    private var displayTabs: [TabDescriptor] {
+        var tabs = ["home", "tools"].compactMap { id in
+            configurableTabs.first(where: { $0.id == id })
+        }
+        tabs.insert(settingsTab, at: min(2, tabs.count))
+        return tabs
+    }
+    
     var body: some View {
         ZStack {
             // Allow global themed background to show
@@ -34,148 +80,84 @@ struct MainTabView: View {
             
             // Main tabs
             TabView(selection: $selection) {
-                HomeView()
-                    .tabItem { Label("Home", systemImage: "house") }
-                    .tag(0)
-
-                ScriptListView()
-                    .tabItem { Label("Scripts", systemImage: "scroll") }
-                    .tag(1)
-
-                DeviceInfoView()
-                    .tabItem { Label("Device Info", systemImage: "info.circle.fill") }
-                    .tag(3)
-
-                SettingsView()
-                    .tabItem { Label("Settings", systemImage: "gearshape.fill") }
-                    .tag(4)
+                ForEach(displayTabs) { descriptor in
+                    descriptor.builder()
+                        .tabItem { Label(descriptor.title, systemImage: descriptor.systemImage) }
+                        .tag(descriptor.id)
+                }
             }
-            .id((themeExpansion?.hasThemeExpansion == true) ? customAccentColorHex : "default-accent")
-            .tint(accentColor)
-            .preferredColorScheme(preferredScheme)
             .onAppear {
-                checkForUpdate()
+                enabledTabIdentifiers = TabConfiguration.serialize(TabConfiguration.sanitize(raw: enabledTabIdentifiers))
+                ensureSelectionIsValid()
+                if !didCheckForUpdate {
+                    didCheckForUpdate = true
+                    checkForAppdbUpdate()
+                }
+                if !didSetInitialHome {
+                    if selectedTabDescriptors.contains(where: { $0.id == "home" }) {
+                        selection = "home"
+                    } else if let descriptor = availableTabs.first(where: { $0.id == "home" }) {
+                        detachedTab = descriptor
+                    }
+                    didSetInitialHome = true
+                }
+                switchObserver = NotificationCenter.default.addObserver(forName: .switchToTab, object: nil, queue: .main) { note in
+                    guard let id = note.object as? String else { return }
+                    if selectedTabDescriptors.contains(where: { $0.id == id }) {
+                        selection = id
+                    } else if let descriptor = availableTabs.first(where: { $0.id == id }) {
+                        detachedTab = descriptor
+                    }
+                }
             }
-
-            if showForceUpdate {
-                ZStack {
-                    Color.black.opacity(0.001).ignoresSafeArea()
-
-                    VStack(spacing: 20) {
-                        Text("Update Required")
-                            .font(.title.bold())
-                            .multilineTextAlignment(.center)
-
-                        Text("A new version (\(latestVersion ?? "unknown")) is available. Please update to continue using the app.")
-                            .multilineTextAlignment(.center)
-                            .font(.callout)
-                            .foregroundColor(.secondary)
-                            .padding(.horizontal)
-
-                        Button(action: {
-                            // Use appdb URL if installed via appdb, otherwise use App Store
-                            let urlString = Appdb.shared.isInstalledViaAppdb() 
-                                ? "https://appdb.to/details/45a698af5360560fd8a522a8ebbc634da8f55df4"
-                                : "itms-apps://itunes.apple.com/app/id6744045754"
-                            
-                            if let url = URL(string: urlString) {
-                                UIApplication.shared.open(url)
+            .onDisappear {
+                if let observer = switchObserver {
+                    NotificationCenter.default.removeObserver(observer)
+                    switchObserver = nil
+                }
+            }
+            .onChange(of: enabledTabIdentifiers) { _, _ in
+                ensureSelectionIsValid()
+            }
+            .sheet(item: $detachedTab) { descriptor in
+                NavigationStack {
+                    descriptor.builder()
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Close") {
+                                    detachedTab = nil
+                                }
                             }
-                        }) {
-                            Text("Update Now")
-                                .font(.headline.weight(.semibold))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.accentColor)
-                                )
-                                .foregroundColor(.black)
                         }
-                        .padding(.top, 10)
-                    }
-                    .padding(24)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .fill(.ultraThinMaterial)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                    .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
-                            )
-                    )
-                    .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
-                    .padding(.horizontal, 40)
                 }
-                .transition(.opacity.combined(with: .scale))
-                .animation(.easeInOut, value: showForceUpdate)
+            }
+            .alert("Update Available", isPresented: $showUpdateAlert) {
+                Button("Not Now", role: .cancel) { }
+                Button("Update") {
+                    guard let url = URL(string: "https://appdb.to/details/45a698af5360560fd8a522a8ebbc634da8f55df4") else { return }
+                    UIApplication.shared.open(url)
+                }
+            } message: {
+                Text("A newer appdb build of StikDebug is available.")
             }
         }
     }
 
-    // MARK: - Update Checker
-    private func checkForUpdate() {
-        // Use APPDB SDK for version checking if app is installed via appdb
-        if Appdb.shared.isInstalledViaAppdb() {
-            Appdb.shared.isAppUpdateAvailable { result in
-                DispatchQueue.main.async {
-                    switch result {
-                    case .success(let isUpdateAvailable):
-                        if isUpdateAvailable {
-                            self.latestVersion = "latest"
-                            self.showForceUpdate = true
-                        }
-                    case .failure(let error):
-                        print("APPDB version check failed: \(error)")
-                        // Silently fail, don't show error to user
-                    }
-                }
-            }
-            return
-        }
-        
-        // Fallback to App Store version checking for non-appdb installations
-        guard let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else { return }
-
-        fetchLatestVersion { latest in
-            latestVersion = latest
-            if let latest = latest,
-               latest.compare(currentVersion, options: .numeric) == .orderedDescending {
-                DispatchQueue.main.async {
-                    showForceUpdate = true
+    private func checkForAppdbUpdate() {
+        guard Appdb.shared.isInstalledViaAppdb() else { return }
+        Appdb.shared.isAppUpdateAvailable { result in
+            DispatchQueue.main.async {
+                if case .success(let isAvailable) = result, isAvailable {
+                    showUpdateAlert = true
                 }
             }
         }
     }
 
-    private func fetchLatestVersion(completion: @escaping (String?) -> Void) {
-        guard let url = URL(string: "https://itunes.apple.com/lookup?id=6744045754") else {
-            completion(nil)
-            return
-        }
-
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-            guard let data = data else {
-                completion(nil)
-                return
-            }
-            do {
-                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let results = json["results"] as? [[String: Any]],
-                   let appStoreVersion = results.first?["version"] as? String {
-                    completion(appStoreVersion)
-                } else {
-                    completion(nil)
-                }
-            } catch {
-                completion(nil)
-            }
-        }.resume()
-    }
 }
 
 struct MainTabView_Previews: PreviewProvider {
     static var previews: some View {
         MainTabView()
-            .themeExpansionManager(ThemeExpansionManager(previewUnlocked: true))
     }
 }

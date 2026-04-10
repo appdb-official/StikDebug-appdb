@@ -14,7 +14,7 @@ struct ScriptListView: View {
     @State private var showNewFileAlert = false
     @State private var newFileName = ""
     @State private var showImporter = false
-    @AppStorage("DefaultScriptName") private var defaultScriptName = "attachDetach.js"
+    @AppStorage(UserDefaults.Keys.defaultScriptName) private var defaultScriptName = UserDefaults.Keys.defaultScriptNameValue
 
     @State private var isBusy = false
     @State private var alertVisible = false
@@ -35,72 +35,75 @@ struct ScriptListView: View {
         guard !searchText.isEmpty else { return scripts }
         return scripts.filter { $0.lastPathComponent.localizedCaseInsensitiveContains(searchText) }
     }
-    
-    @AppStorage("appTheme") private var appThemeRaw: String = AppTheme.system.rawValue
-    @Environment(\.themeExpansionManager) private var themeExpansion
-    private var backgroundStyle: BackgroundStyle { themeExpansion?.backgroundStyle(for: appThemeRaw) ?? AppTheme.system.backgroundStyle }
-    private var preferredScheme: ColorScheme? { themeExpansion?.preferredColorScheme(for: appThemeRaw) }
+
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                ThemedBackground(style: backgroundStyle)
-                    .ignoresSafeArea()
-
-                ScrollView {
-                    VStack(spacing: 20) {
-                        headerCard
-
-                        if filteredScripts.isEmpty {
-                            emptyCard
-                        } else {
-                            ForEach(filteredScripts, id: \.self) { script in
-                                scriptRow(script)
-                            }
+            List {
+                if isPickerMode {
+                    Section {
+                        Button {
+                            onSelectScript?(nil)
+                        } label: {
+                            Label("No Script", systemImage: "nosign")
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 30)
                 }
 
-                if isBusy {
-                    Color.black.opacity(0.35).ignoresSafeArea()
-                    ProgressView("Working…")
-                        .padding(16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(.ultraThinMaterial)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
-                                )
-                        )
-                        .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
-                }
-
-                if alertVisible {
-                    CustomErrorView(title: alertTitle,
-                                    message: alertMessage,
-                                    onDismiss: { alertVisible = false },
-                                    messageType: alertIsSuccess ? .success : .error)
-                }
-
-                if justCopied {
-                    VStack {
-                        Spacer()
-                        Text("Copied")
-                            .font(.footnote.weight(.semibold))
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 10)
-                            .background(.ultraThinMaterial, in: Capsule())
-                            .overlay(Capsule().strokeBorder(Color.white.opacity(0.15), lineWidth: 1))
-                            .shadow(color: .black.opacity(0.12), radius: 10, x: 0, y: 3)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                            .padding(.bottom, 30)
+                if filteredScripts.isEmpty {
+                    Section {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Label(
+                                isPickerMode ? "No scripts available" : "No scripts found",
+                                systemImage: "doc.text.magnifyingglass"
+                            )
+                            .foregroundStyle(.secondary)
+                            Text(isPickerMode ? "Import a file or choose None." : "Tap New or Import to get started.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 4)
                     }
-                    .animation(.easeInOut(duration: 0.25), value: justCopied)
+                } else {
+                    Section {
+                        ForEach(filteredScripts, id: \.self) { script in
+                            scriptRow(script)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    if !isPickerMode {
+                                        Button(role: .destructive) {
+                                            pendingDelete = script
+                                            showDeleteConfirmation = true
+                                        } label: { Label("Delete", systemImage: "trash") }
+                                    }
+                                }
+                                .contextMenu {
+                                    Button { copyName(script) } label: {
+                                        Label("Copy Filename", systemImage: "doc.on.doc")
+                                    }
+                                    Button { copyPath(script) } label: {
+                                        Label("Copy Path", systemImage: "folder")
+                                    }
+                                    if !isPickerMode {
+                                        Button { saveDefaultScript(script) } label: {
+                                            Label("Set Default", systemImage: "star")
+                                        }
+                                        Divider()
+                                        Button(role: .destructive) {
+                                            pendingDelete = script
+                                            showDeleteConfirmation = true
+                                        } label: { Label("Delete", systemImage: "trash") }
+                                    }
+                                }
+                        }
+                    }
                 }
             }
+            .listStyle(.insetGrouped)
+            .searchable(
+                text: $searchText,
+                placement: .navigationBarDrawer(displayMode: .always),
+                prompt: "Search scripts…"
+            )
             .navigationTitle(isPickerMode ? "Choose Script" : "Scripts")
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
@@ -124,7 +127,7 @@ struct ScriptListView: View {
                 Button("Delete", role: .destructive) { deleteScript(script) }
                 Button("Cancel", role: .cancel) { pendingDelete = nil }
             } message: { script in
-                Text("Are you sure you want to delete \(script.lastPathComponent)? This cannot be undone.")
+                Text("Delete \(script.lastPathComponent)? This cannot be undone.")
             }
             .fileImporter(
                 isPresented: $showImporter,
@@ -136,192 +139,95 @@ struct ScriptListView: View {
                 }
             }
         }
-        .preferredColorScheme(preferredScheme)
-    }
-
-    // MARK: - Cards
-
-    private var headerCard: some View {
-        VStack(spacing: 12) {
-            TextField("Search scripts…", text: $searchText)
-                .padding(12)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
-                )
-
-            HStack(spacing: 12) {
-                if isPickerMode {
-                    WideGlassyButton(title: "None", systemImage: "nosign") {
-                        onSelectScript?(nil)
-                    }
-                    WideGlassyButton(title: "Import", systemImage: "tray.and.arrow.down") {
-                        showImporter = true
-                    }
-                } else {
-                    WideGlassyButton(title: "New", systemImage: "doc.badge.plus") {
-                        showNewFileAlert = true
-                    }
-                    WideGlassyButton(title: "Import", systemImage: "tray.and.arrow.down") {
-                        showImporter = true
-                    }
+                .overlay {
+            if isBusy {
+                Color.black.opacity(0.35).ignoresSafeArea()
+                ProgressView("Working…")
+                    .padding(16)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+            if justCopied {
+                VStack {
+                    Spacer()
+                    Text("Copied")
+                        .font(.footnote.weight(.semibold))
+                        .padding(.horizontal, 14).padding(.vertical, 10)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .padding(.bottom, 30)
                 }
+                .animation(.easeInOut(duration: 0.25), value: justCopied)
             }
         }
-        .padding(20)
-        .background(glassyBackground)
+        .alert(alertTitle, isPresented: $alertVisible) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(alertMessage)
+        }
     }
+
+    // MARK: - Row
 
     @ViewBuilder
     private func scriptRow(_ script: URL) -> some View {
+        let isDefault = defaultScriptName == script.lastPathComponent
         if isPickerMode {
             Button {
                 onSelectScript?(script)
             } label: {
-                scriptCard(script, showDefaultStar: true, showDelete: false)
+                HStack {
+                    Label(script.lastPathComponent, systemImage: "doc.text.fill")
+                    Spacer()
+                    if isDefault {
+                        Image(systemName: "star.fill").foregroundStyle(.yellow).imageScale(.small)
+                    }
+                }
             }
-            .buttonStyle(.plain)
         } else {
             NavigationLink {
                 ScriptEditorView(scriptURL: script)
             } label: {
-                scriptCard(script, showDefaultStar: true, showDelete: true)
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
-    private func scriptCard(_ script: URL, showDefaultStar: Bool, showDelete: Bool) -> some View {
-        let isDefault = defaultScriptName == script.lastPathComponent
-
-        return HStack(spacing: 12) {
-            Image(systemName: "doc.text.fill")
-                .foregroundColor(.blue)
-                .imageScale(.large)
-
-            Text(script.lastPathComponent)
-                .font(.body.weight(.medium))
-                .lineLimit(1)
-
-            Spacer()
-
-            if showDefaultStar, isDefault {
-                Image(systemName: "star.fill")
-                    .foregroundColor(.yellow)
-            }
-
-            if showDelete {
-                Button(role: .destructive) {
-                    pendingDelete = script
-                    showDeleteConfirmation = true
-                } label: {
-                    Image(systemName: "trash")
-                        .foregroundColor(.red)
-                }
-                .buttonStyle(.borderless)
-            }
-        }
-        .padding(20)
-        .background(glassyBackground)
-        .contextMenu {
-            Button { copyName(script) } label: {
-                Label("Copy Filename", systemImage: "doc.on.doc")
-            }
-            Button { copyPath(script) } label: {
-                Label("Copy Path", systemImage: "folder")
-            }
-            if !isPickerMode {
-                Button { saveDefaultScript(script) } label: {
-                    Label("Set Default", systemImage: "star")
+                HStack {
+                    Label(script.lastPathComponent, systemImage: "doc.text.fill")
+                    Spacer()
+                    if isDefault {
+                        Image(systemName: "star.fill").foregroundStyle(.yellow).imageScale(.small)
+                    }
                 }
             }
         }
-    }
-
-    private var emptyCard: some View {
-        VStack(spacing: 6) {
-            Label(isPickerMode ? "No scripts available" : "No scripts found",
-                  systemImage: "doc.text.magnifyingglass")
-                .font(.subheadline.weight(.semibold))
-            Text(isPickerMode ? "Import a file or choose None." : "Tap New or Import to get started.")
-                .font(.footnote)
-                .foregroundColor(.secondary)
-        }
-        .padding(40)
-        .frame(maxWidth: .infinity)
-        .background(glassyBackground)
-    }
-
-    private var glassyBackground: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(.ultraThinMaterial)
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        gradient: Gradient(colors: overlayColors()),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .opacity(0.32)
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
-        }
-        .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
-    }
-
-    private func overlayColors() -> [Color] {
-        let colors: [Color]
-        switch backgroundStyle {
-        case .staticGradient(let palette):
-            colors = palette
-        case .animatedGradient(let palette, _):
-            colors = palette
-        case .blobs(_, let background):
-            colors = background
-        case .particles(let particle, let background):
-            colors = background.isEmpty ? [particle, particle.opacity(0.4)] : background
-        case .customGradient(let palette):
-            colors = palette
-        }
-        if colors.count >= 2 { return colors }
-        if let first = colors.first { return [first, first.opacity(0.6)] }
-        return [Color.blue, Color.purple]
     }
 
     // MARK: - File Ops
 
-    private func scriptsDirectory() -> URL {
-        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("scripts")
-        var isDir: ObjCBool = false
-        let exists = FileManager.default.fileExists(atPath: dir.path, isDirectory: &isDir)
-        do {
-            if exists && !isDir.boolValue {
-                try FileManager.default.removeItem(at: dir)
-            }
-            if !exists || !isDir.boolValue {
-                try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-                if let bundleURL = Bundle.main.url(forResource: "attachDetach", withExtension: "js") {
-                    let dest = dir.appendingPathComponent("attachDetach.js")
-                    if !FileManager.default.fileExists(atPath: dest.path) {
-                        try FileManager.default.copyItem(at: bundleURL, to: dest)
-                    }
-                }
-            }
-        } catch {
-            presentError(title: "Unable to Create Scripts Folder", message: error.localizedDescription)
+    private func scriptsDirectory() throws -> URL {
+        let directory = try ScriptStore.prepareDirectory()
+        try ensureEditorScripts(in: directory)
+        return directory
+    }
+
+    private func ensureEditorScripts(in directory: URL) throws {
+        let fm = FileManager.default
+        let screenshotURL = directory.appendingPathComponent("screenshot-demo.js")
+        if !fm.fileExists(atPath: screenshotURL.path) {
+            try screenshotDemoScript.write(to: screenshotURL, atomically: true, encoding: .utf8)
         }
-        return dir
+        let standaloneURL = directory.appendingPathComponent("screenshot-capture.js")
+        if !fm.fileExists(atPath: standaloneURL.path) {
+            try screenshotCaptureScript.write(to: standaloneURL, atomically: true, encoding: .utf8)
+        }
     }
 
     private func loadScripts() {
-        let dir = scriptsDirectory()
-        scripts = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil))?
-            .filter { $0.pathExtension.lowercased() == "js" }
-            .sorted { $0.lastPathComponent.localizedCaseInsensitiveCompare($1.lastPathComponent) == .orderedAscending } ?? []
+        do {
+            let directory = try scriptsDirectory()
+            scripts = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+                .filter { $0.pathExtension.lowercased() == "js" }
+                .sorted { $0.lastPathComponent.localizedCaseInsensitiveCompare($1.lastPathComponent) == .orderedAscending }
+        } catch {
+            scripts = []
+            presentError(title: "Unable to Load Scripts", message: error.localizedDescription)
+        }
     }
 
     private func saveDefaultScript(_ url: URL) {
@@ -333,12 +239,12 @@ struct ScriptListView: View {
         guard !newFileName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         var filename = newFileName.trimmingCharacters(in: .whitespacesAndNewlines)
         if !filename.hasSuffix(".js") { filename += ".js" }
-        let newURL = scriptsDirectory().appendingPathComponent(filename)
-        guard !FileManager.default.fileExists(atPath: newURL.path) else {
-            presentError(title: "Failed to Create New Script", message: "A script with the same name already exists.")
-            return
-        }
         do {
+            let newURL = try scriptsDirectory().appendingPathComponent(filename)
+            guard !FileManager.default.fileExists(atPath: newURL.path) else {
+                presentError(title: "Failed to Create New Script", message: "A script with the same name already exists.")
+                return
+            }
             try "".write(to: newURL, atomically: true, encoding: .utf8)
             newFileName = ""
             loadScripts()
@@ -352,7 +258,7 @@ struct ScriptListView: View {
         do {
             try FileManager.default.removeItem(at: url)
             if url.lastPathComponent == defaultScriptName {
-                UserDefaults.standard.removeObject(forKey: "DefaultScriptName")
+                UserDefaults.standard.removeObject(forKey: UserDefaults.Keys.defaultScriptName)
             }
             loadScripts()
         } catch {
@@ -365,7 +271,8 @@ struct ScriptListView: View {
         DispatchQueue.global(qos: .userInitiated).async {
             defer { DispatchQueue.main.async { self.isBusy = false } }
             do {
-                let dest = self.scriptsDirectory().appendingPathComponent(fileURL.lastPathComponent)
+                let directory = try self.scriptsDirectory()
+                let dest = directory.appendingPathComponent(fileURL.lastPathComponent)
                 if FileManager.default.fileExists(atPath: dest.path) {
                     try FileManager.default.removeItem(at: dest)
                 }
@@ -382,7 +289,7 @@ struct ScriptListView: View {
         }
     }
 
-    // MARK: - Feedback helpers
+    // MARK: - Feedback
 
     private func presentError(title: String, message: String) {
         alertTitle = title; alertMessage = message
@@ -412,37 +319,57 @@ struct ScriptListView: View {
     }
 }
 
-// MARK: - Equal-width rounded-rectangle button (centered content)
-private struct WideGlassyButton: View {
-    let title: String
-    let systemImage: String
-    let action: () -> Void
+// MARK: - Script content stubs
 
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 8) {
-                Image(systemName: systemImage)
-                    .imageScale(.medium)
-                    .font(.body.weight(.semibold))
-                Text(title)
-                    .font(.body.weight(.semibold))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-            }
-            .frame(maxWidth: .infinity, alignment: .center)
-            .padding(.horizontal, 14)
-        }
-        .frame(height: 44)
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.ultraThinMaterial)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
-        )
-        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .buttonStyle(.plain)
+private let screenshotDemoScript = """
+// Screenshot Demo Script
+// Attaches to the target, captures a PNG screenshot, and detaches.
+
+function takeScreenshotDemo() {
+    log("[ScreenshotDemo] Starting demo");
+
+    const pid = get_pid();
+    log(`[ScreenshotDemo] Target PID: ${pid}`);
+
+    const attachResponse = send_command(`vAttach;${pid.toString(16)}`);
+    log(`[ScreenshotDemo] attach_response = ${attachResponse}`);
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const fileName = `screenshot-${timestamp}.png`;
+    const savedPath = take_screenshot(fileName);
+
+    if (savedPath && savedPath.length > 0) {
+        log(`[ScreenshotDemo] Screenshot saved to ${savedPath}`);
+    } else {
+        log("[ScreenshotDemo] Device did not report a saved path.");
     }
+
+    const detachResponse = send_command("D");
+    log(`[ScreenshotDemo] detach_response = ${detachResponse}`);
+    log("[ScreenshotDemo] Demo complete.");
 }
+
+takeScreenshotDemo();
+"""
+
+private let screenshotCaptureScript = """
+// Screenshot Capture Script
+// Takes a screenshot without sending any debugserver commands.
+
+function captureScreenshot() {
+    log("[ScreenshotCapture] Requesting screenshot without attaching…");
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const fileName = `standalone-${timestamp}.png`;
+    const savedPath = take_screenshot(fileName);
+
+    if (savedPath && savedPath.length > 0) {
+        log(`[ScreenshotCapture] Screenshot saved to ${savedPath}`);
+    } else {
+        log("[ScreenshotCapture] Device did not report a saved path.");
+    }
+
+    log("[ScreenshotCapture] Done.");
+}
+
+captureScreenshot();
+"""

@@ -1,6 +1,5 @@
-# Privacy Policy for StikDebug
-StikDebug do not collect, store, or share any personal data. All processing happens entirely on your device.
+# Privacy Policy
+StikDebug does not collect, store, or share any personal data. All processing happens entirely on your device.
 
-# Support for StikDebug
-To get support join our [Discord Server](https://discord.gg/mACqxMxP3X)
-
+# Support
+Read the [appdb JIT guide](https://appdb.to/enable-jit) and contact [appdb support](https://appdb.to/my/support).

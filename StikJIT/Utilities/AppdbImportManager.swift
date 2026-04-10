@@ -50,12 +50,11 @@ class AppdbImportManager: ObservableObject {
     }
 
     private func makeAppdbPairingFileRequest(
-        persistentCustomerIdentifier: String, 
+        persistentCustomerIdentifier: String,
         persistentDeviceIdentifier: String,
         installationUUID: String,
         completion: @escaping (Bool) -> Void
     ) {
-        // Use the correct API URL from HomeView.swift (v1.7)
         guard let url = URL(string: "https://api.dbservices.to/v1.7/get_pairing_file/") else {
             DispatchQueue.main.async {
                 self.appdbErrorMessage = "Invalid API URL"
@@ -70,7 +69,7 @@ class AppdbImportManager: ObservableObject {
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
 
-        let parameters = [
+        let parameters: [String: String] = [
             "brand": "appdb",
             "lang": "en",
             "persistent_customer_identifier": persistentCustomerIdentifier,
@@ -78,7 +77,14 @@ class AppdbImportManager: ObservableObject {
             "installation_uuid": installationUUID,
         ]
 
-        let formData = parameters.map { "\($0.key)=\($0.value)" }.joined(separator: "&")
+        let formData = parameters
+            .sorted { $0.key < $1.key }
+            .map { key, value in
+                let escapedKey = key.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? key
+                let escapedValue = value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? value
+                return "\(escapedKey)=\(escapedValue)"
+            }
+            .joined(separator: "&")
         request.httpBody = formData.data(using: .utf8)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -140,27 +146,21 @@ class AppdbImportManager: ObservableObject {
     }
 
     private func savePairingFile(data: String, completion: @escaping (Bool) -> Void) {
-        let fileManager = FileManager.default
-        let pairingFilePath = URL.documentsDirectory.appendingPathComponent("pairingFile.plist")
-
         do {
-            // Remove existing pairing file if it exists
-            if fileManager.fileExists(atPath: pairingFilePath.path) {
-                try fileManager.removeItem(at: pairingFilePath)
+            let destinationURL = PairingFileStore.prepareURL()
+            if FileManager.default.fileExists(atPath: destinationURL.path) {
+                try FileManager.default.removeItem(at: destinationURL)
             }
-
-            // Write new pairing file
-            try data.write(to: pairingFilePath, atomically: true, encoding: .utf8)
+            guard let pairingData = data.data(using: .utf8) else {
+                throw CocoaError(.fileWriteInapplicableStringEncoding)
+            }
+            try pairingData.write(to: destinationURL, options: .atomic)
+            try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: destinationURL.path)
 
             DispatchQueue.main.async {
-                // Show progress bar and initialize progress
                 self.isImportingFile = true
                 self.importProgress = 0.0
-
-                // Start heartbeat in background
                 startHeartbeatInBackground()
-
-                // Create timer to update progress
                 let progressTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) {
                     timer in
                     DispatchQueue.main.async {

@@ -7,30 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		17C744F02E20BED000834F17 /* Pipify in Frameworks */ = {isa = PBXBuildFile; productRef = 17C744EF2E20BED000834F17 /* Pipify */; };
-		68AD80462E6B65DA00DE9112 /* ZsignSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 68AD80452E6B65DA00DE9112 /* ZsignSwift */; };
-		68AD80482E6B65DA00DE9112 /* zsign in Frameworks */ = {isa = PBXBuildFile; productRef = 68AD80472E6B65DA00DE9112 /* zsign */; };
-		68D1FA402E847E4A0028A0EA /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 68D1FA3F2E847E4A0028A0EA /* StoreKit.framework */; };
+		4A6C9D192FC7D0BA00A1C001 /* AppdbFramework in Frameworks */ = {isa = PBXBuildFile; productRef = 4A6C9D182FC7D0BA00A1C001 /* AppdbFramework */; };
 		68D569BE2E1B415700A5BA36 /* CodeEditorView in Frameworks */ = {isa = PBXBuildFile; productRef = 68D569BD2E1B415700A5BA36 /* CodeEditorView */; };
 		68D569C02E1B415700A5BA36 /* LanguageSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 68D569BF2E1B415700A5BA36 /* LanguageSupport */; };
-		68E714E62E6AA2B00025610F /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 68E714E52E6AA2B00025610F /* ZIPFoundation */; };
-		88A0C7712E83EAD30063991F /* AppdbFramework in Frameworks */ = {isa = PBXBuildFile; productRef = 886F4C372E2260C4001F1410 /* AppdbFramework */; };
-		DC139F6E2DE97EA400F63846 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC139F6D2DE97EA400F63846 /* WidgetKit.framework */; };
-		DC139F702DE97EA400F63846 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC139F6F2DE97EA400F63846 /* SwiftUI.framework */; };
-		DC139F812DE97EA600F63846 /* DebugWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DC139F6C2DE97EA400F63846 /* DebugWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		DCA690122DAF660E007C91A8 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DCA690112DAF660E007C91A8 /* NetworkExtension.framework */; };
-		DCA6901A2DAF660E007C91A8 /* TunnelProv.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DCA690102DAF660E007C91A8 /* TunnelProv.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		DCBA85862E3897BD00E88C06 /* StikImporter in Frameworks */ = {isa = PBXBuildFile; productRef = DCBA85852E3897BD00E88C06 /* StikImporter */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		DC139F7F2DE97EA600F63846 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = DC6F1D2F2D94EADD0071B2B6 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = DC139F6B2DE97EA400F63846;
-			remoteInfo = DebugWidgetExtension;
-		};
 		DC6F1D492D94EADF0071B2B6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DC6F1D2F2D94EADD0071B2B6 /* Project object */;
@@ -45,13 +27,6 @@
 			remoteGlobalIDString = DC6F1D362D94EADD0071B2B6;
 			remoteInfo = StikJIT;
 		};
-		DCA690182DAF660E007C91A8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = DC6F1D2F2D94EADD0071B2B6 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = DCA6900F2DAF660E007C91A8;
-			remoteInfo = TunnelProv;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -61,8 +36,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				DC139F812DE97EA600F63846 /* DebugWidgetExtension.appex in Embed Foundation Extensions */,
-				DCA6901A2DAF660E007C91A8 /* TunnelProv.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -70,17 +43,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		68AA2E4C2E8214A1008342E8 /* StikDebug.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = StikDebug.storekit; sourceTree = "<group>"; };
-		68D1FA3F2E847E4A0028A0EA /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
-		DC139F6C2DE97EA400F63846 /* DebugWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DebugWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC139F6D2DE97EA400F63846 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		DC139F6F2DE97EA400F63846 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
-		DC139F862DE97F2000F63846 /* DebugWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DebugWidgetExtension.entitlements; sourceTree = "<group>"; };
 		DC6F1D372D94EADD0071B2B6 /* StikDebug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StikDebug.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC6F1D482D94EADF0071B2B6 /* StikDebugTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = StikDebugTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC6F1D522D94EADF0071B2B6 /* StikDebugUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = StikDebugUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		DCA690102DAF660E007C91A8 /* TunnelProv.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TunnelProv.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		DCA690112DAF660E007C91A8 /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -91,31 +58,9 @@
 			);
 			target = DC6F1D362D94EADD0071B2B6 /* StikDebug */;
 		};
-		DC139F852DE97EA600F63846 /* Exceptions for "DebugWidget" folder in "DebugWidgetExtension" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = DC139F6B2DE97EA400F63846 /* DebugWidgetExtension */;
-		};
-		DCA6901E2DAF660E007C91A8 /* Exceptions for "TunnelProv" folder in "TunnelProv" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = DCA6900F2DAF660E007C91A8 /* TunnelProv */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		DC139F712DE97EA400F63846 /* DebugWidget */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				DC139F852DE97EA600F63846 /* Exceptions for "DebugWidget" folder in "DebugWidgetExtension" target */,
-			);
-			path = DebugWidget;
-			sourceTree = "<group>";
-		};
 		DC6F1D392D94EADD0071B2B6 /* StikJIT */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -134,39 +79,16 @@
 			path = StikJITUITests;
 			sourceTree = "<group>";
 		};
-		DCA690132DAF660E007C91A8 /* TunnelProv */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				DCA6901E2DAF660E007C91A8 /* Exceptions for "TunnelProv" folder in "TunnelProv" target */,
-			);
-			path = TunnelProv;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		DC139F692DE97EA400F63846 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				DC139F702DE97EA400F63846 /* SwiftUI.framework in Frameworks */,
-				DC139F6E2DE97EA400F63846 /* WidgetKit.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		DC6F1D342D94EADD0071B2B6 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				88A0C7712E83EAD30063991F /* AppdbFramework in Frameworks */,
-				DCBA85862E3897BD00E88C06 /* StikImporter in Frameworks */,
-				17C744F02E20BED000834F17 /* Pipify in Frameworks */,
-				68AD80462E6B65DA00DE9112 /* ZsignSwift in Frameworks */,
-				68AD80482E6B65DA00DE9112 /* zsign in Frameworks */,
+				4A6C9D192FC7D0BA00A1C001 /* AppdbFramework in Frameworks */,
 				68D569C02E1B415700A5BA36 /* LanguageSupport in Frameworks */,
-				68D1FA402E847E4A0028A0EA /* StoreKit.framework in Frameworks */,
 				68D569BE2E1B415700A5BA36 /* CodeEditorView in Frameworks */,
-				68E714E62E6AA2B00025610F /* ZIPFoundation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -184,26 +106,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		DCA6900D2DAF660E007C91A8 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				DCA690122DAF660E007C91A8 /* NetworkExtension.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		DC6F1D2E2D94EADD0071B2B6 = {
 			isa = PBXGroup;
 			children = (
-				DC139F862DE97F2000F63846 /* DebugWidgetExtension.entitlements */,
 				DC6F1D392D94EADD0071B2B6 /* StikJIT */,
 				DC6F1D4B2D94EADF0071B2B6 /* StikJITTests */,
 				DC6F1D552D94EADF0071B2B6 /* StikJITUITests */,
-				DCA690132DAF660E007C91A8 /* TunnelProv */,
-				DC139F712DE97EA400F63846 /* DebugWidget */,
 				DC6F1D752D94EB620071B2B6 /* Frameworks */,
 				DC6F1D382D94EADD0071B2B6 /* Products */,
 			);
@@ -215,8 +126,6 @@
 				DC6F1D372D94EADD0071B2B6 /* StikDebug.app */,
 				DC6F1D482D94EADF0071B2B6 /* StikDebugTests.xctest */,
 				DC6F1D522D94EADF0071B2B6 /* StikDebugUITests.xctest */,
-				DCA690102DAF660E007C91A8 /* TunnelProv.appex */,
-				DC139F6C2DE97EA400F63846 /* DebugWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -224,8 +133,6 @@
 		DC6F1D752D94EB620071B2B6 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				68D1FA3F2E847E4A0028A0EA /* StoreKit.framework */,
-				DCA690112DAF660E007C91A8 /* NetworkExtension.framework */,
 				DC139F6D2DE97EA400F63846 /* WidgetKit.framework */,
 				DC139F6F2DE97EA400F63846 /* SwiftUI.framework */,
 			);
@@ -235,28 +142,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		DC139F6B2DE97EA400F63846 /* DebugWidgetExtension */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = DC139F842DE97EA600F63846 /* Build configuration list for PBXNativeTarget "DebugWidgetExtension" */;
-			buildPhases = (
-				DC139F682DE97EA400F63846 /* Sources */,
-				DC139F692DE97EA400F63846 /* Frameworks */,
-				DC139F6A2DE97EA400F63846 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				DC139F712DE97EA400F63846 /* DebugWidget */,
-			);
-			name = DebugWidgetExtension;
-			packageProductDependencies = (
-			);
-			productName = DebugWidgetExtension;
-			productReference = DC139F6C2DE97EA400F63846 /* DebugWidgetExtension.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 		DC6F1D362D94EADD0071B2B6 /* StikDebug */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = DC6F1D5C2D94EADF0071B2B6 /* Build configuration list for PBXNativeTarget "StikDebug" */;
@@ -269,22 +154,15 @@
 			buildRules = (
 			);
 			dependencies = (
-				DCA690192DAF660E007C91A8 /* PBXTargetDependency */,
-				DC139F802DE97EA600F63846 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				DC6F1D392D94EADD0071B2B6 /* StikJIT */,
 			);
 			name = StikDebug;
 			packageProductDependencies = (
+				4A6C9D182FC7D0BA00A1C001 /* AppdbFramework */,
 				68D569BD2E1B415700A5BA36 /* CodeEditorView */,
 				68D569BF2E1B415700A5BA36 /* LanguageSupport */,
-				17C744EF2E20BED000834F17 /* Pipify */,
-				886F4C372E2260C4001F1410 /* AppdbFramework */,
-				DCBA85852E3897BD00E88C06 /* StikImporter */,
-				68E714E52E6AA2B00025610F /* ZIPFoundation */,
-				68AD80452E6B65DA00DE9112 /* ZsignSwift */,
-				68AD80472E6B65DA00DE9112 /* zsign */,
 			);
 			productName = StikJIT;
 			productReference = DC6F1D372D94EADD0071B2B6 /* StikDebug.app */;
@@ -336,28 +214,6 @@
 			productReference = DC6F1D522D94EADF0071B2B6 /* StikDebugUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
-		DCA6900F2DAF660E007C91A8 /* TunnelProv */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = DCA6901B2DAF660E007C91A8 /* Build configuration list for PBXNativeTarget "TunnelProv" */;
-			buildPhases = (
-				DCA6900C2DAF660E007C91A8 /* Sources */,
-				DCA6900D2DAF660E007C91A8 /* Frameworks */,
-				DCA6900E2DAF660E007C91A8 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				DCA690132DAF660E007C91A8 /* TunnelProv */,
-			);
-			name = TunnelProv;
-			packageProductDependencies = (
-			);
-			productName = TunnelProv;
-			productReference = DCA690102DAF660E007C91A8 /* TunnelProv.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -368,9 +224,6 @@
 				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
-					DC139F6B2DE97EA400F63846 = {
-						CreatedOnToolsVersion = 16.2;
-					};
 					DC6F1D362D94EADD0071B2B6 = {
 						CreatedOnToolsVersion = 16.2;
 						LastSwiftMigration = 1620;
@@ -383,9 +236,6 @@
 						CreatedOnToolsVersion = 16.2;
 						TestTargetID = DC6F1D362D94EADD0071B2B6;
 					};
-					DCA6900F2DAF660E007C91A8 = {
-						CreatedOnToolsVersion = 16.2;
-					};
 				};
 			};
 			buildConfigurationList = DC6F1D322D94EADD0071B2B6 /* Build configuration list for PBXProject "StikDebug" */;
@@ -395,16 +245,13 @@
 				en,
 				Base,
 				es,
+				it,
 			);
 			mainGroup = DC6F1D2E2D94EADD0071B2B6;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				4A6C9D172FC7D0BA00A1C001 /* XCRemoteSwiftPackageReference "AppdbSDK" */,
 				68D569BC2E1B415700A5BA36 /* XCRemoteSwiftPackageReference "CodeEditorView" */,
-				17C744EE2E20BED000834F17 /* XCRemoteSwiftPackageReference "swiftui-pipify" */,
-				886F4C362E2260C4001F1410 /* XCRemoteSwiftPackageReference "AppdbSDK" */,
-				DCBA85842E3897BD00E88C06 /* XCRemoteSwiftPackageReference "StikImporter" */,
-				68E714E42E6AA2B00025610F /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
-				68AD80442E6B65DA00DE9112 /* XCRemoteSwiftPackageReference "Zsign-Package" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DC6F1D382D94EADD0071B2B6 /* Products */;
@@ -414,20 +261,11 @@
 				DC6F1D362D94EADD0071B2B6 /* StikDebug */,
 				DC6F1D472D94EADF0071B2B6 /* StikDebugTests */,
 				DC6F1D512D94EADF0071B2B6 /* StikDebugUITests */,
-				DCA6900F2DAF660E007C91A8 /* TunnelProv */,
-				DC139F6B2DE97EA400F63846 /* DebugWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		DC139F6A2DE97EA400F63846 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		DC6F1D352D94EADD0071B2B6 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -449,23 +287,9 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		DCA6900E2DAF660E007C91A8 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		DC139F682DE97EA400F63846 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		DC6F1D332D94EADD0071B2B6 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -487,21 +311,9 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		DCA6900C2DAF660E007C91A8 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		DC139F802DE97EA600F63846 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = DC139F6B2DE97EA400F63846 /* DebugWidgetExtension */;
-			targetProxy = DC139F7F2DE97EA600F63846 /* PBXContainerItemProxy */;
-		};
 		DC6F1D4A2D94EADF0071B2B6 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = DC6F1D362D94EADD0071B2B6 /* StikDebug */;
@@ -512,75 +324,9 @@
 			target = DC6F1D362D94EADD0071B2B6 /* StikDebug */;
 			targetProxy = DC6F1D532D94EADF0071B2B6 /* PBXContainerItemProxy */;
 		};
-		DCA690192DAF660E007C91A8 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = DCA6900F2DAF660E007C91A8 /* TunnelProv */;
-			targetProxy = DCA690182DAF660E007C91A8 /* PBXContainerItemProxy */;
-		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		DC139F822DE97EA600F63846 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_ENTITLEMENTS = DebugWidgetExtension.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = SZ977XLF24;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = DebugWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = DebugWidget;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "to.appdb.jit-ios.DebugWidget";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		DC139F832DE97EA600F63846 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_ENTITLEMENTS = DebugWidgetExtension.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = SZ977XLF24;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = DebugWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = DebugWidget;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "to.appdb.jit-ios.DebugWidget";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
 		DC6F1D5A2D94EADF0071B2B6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -698,23 +444,29 @@
 		DC6F1D5D2D94EADF0071B2B6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = StikDebug;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = StikJIT/StikJIT.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"StikJIT/Preview Content\"";
-				DEVELOPMENT_TEAM = SZ977XLF24;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/StikJIT/Sources",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/StikJIT/idevice",
+				);
 				INFOPLIST_FILE = StikJIT/Info.plist;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "StikDebug needs access to devices on your local network so it can connect to the targets you add to the Device Library.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "StikDebug uses location to stay running in the background and maintain your JIT connection.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "StikDebug uses location to stay running in the background and maintain your JIT connection.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -734,16 +486,19 @@
 					"$(PROJECT_DIR)/StikJIT/idevice",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.1;
-				MARKETING_VERSION = 2.3.1a;
+				MARKETING_VERSION = 3.1.1a;
 				PRODUCT_BUNDLE_IDENTIFIER = to.appdb.jit-ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "StikJIT/StikJIT-Bridging-Header.h";
+				SWIFT_INCLUDE_PATHS = "$(inherited) $(PROJECT_DIR)/StikJIT/idevice";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				XROS_DEPLOYMENT_TARGET = 2.2;
 			};
 			name = Debug;
@@ -751,23 +506,29 @@
 		DC6F1D5E2D94EADF0071B2B6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = StikDebug;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = StikJIT/StikJIT.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"StikJIT/Preview Content\"";
-				DEVELOPMENT_TEAM = SZ977XLF24;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/StikJIT/Sources",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/StikJIT/idevice",
+				);
 				INFOPLIST_FILE = StikJIT/Info.plist;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "StikDebug needs access to devices on your local network so it can connect to the targets you add to the Device Library.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "StikDebug uses location to stay running in the background and maintain your JIT connection.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "StikDebug uses location to stay running in the background and maintain your JIT connection.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -787,15 +548,18 @@
 					"$(PROJECT_DIR)/StikJIT/idevice",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.1;
-				MARKETING_VERSION = 2.3.1a;
+				MARKETING_VERSION = 3.1.1a;
 				PRODUCT_BUNDLE_IDENTIFIER = to.appdb.jit-ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "StikJIT/StikJIT-Bridging-Header.h";
+				SWIFT_INCLUDE_PATHS = "$(inherited) $(PROJECT_DIR)/StikJIT/idevice";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				XROS_DEPLOYMENT_TARGET = 2.2;
 			};
 			name = Release;
@@ -811,7 +575,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				MACOSX_DEPLOYMENT_TARGET = 15.1;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "to.appdb.jit-ios.StikJITTests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.stik.StikJITTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -834,7 +598,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				MACOSX_DEPLOYMENT_TARGET = 15.1;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "to.appdb.jit-ios.StikJITTests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.stik.StikJITTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -856,7 +620,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				MACOSX_DEPLOYMENT_TARGET = 15.1;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "to.appdb.jit-ios.StikJITUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.stik.StikJITUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -878,7 +642,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				MACOSX_DEPLOYMENT_TARGET = 15.1;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "to.appdb.jit-ios.StikJITUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.stik.StikJITUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -890,75 +654,9 @@
 			};
 			name = Release;
 		};
-		DCA6901C2DAF660E007C91A8 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = TunnelProv/TunnelProv.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = SZ977XLF24;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = TunnelProv/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TunnelProv;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "to.appdb.jit-ios.TunnelProv";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		DCA6901D2DAF660E007C91A8 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = TunnelProv/TunnelProv.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = SZ977XLF24;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = TunnelProv/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TunnelProv;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "to.appdb.jit-ios.TunnelProv";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		DC139F842DE97EA600F63846 /* Build configuration list for PBXNativeTarget "DebugWidgetExtension" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				DC139F822DE97EA600F63846 /* Debug */,
-				DC139F832DE97EA600F63846 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		DC6F1D322D94EADD0071B2B6 /* Build configuration list for PBXProject "StikDebug" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -995,32 +693,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		DCA6901B2DAF660E007C91A8 /* Build configuration list for PBXNativeTarget "TunnelProv" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				DCA6901C2DAF660E007C91A8 /* Debug */,
-				DCA6901D2DAF660E007C91A8 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		17C744EE2E20BED000834F17 /* XCRemoteSwiftPackageReference "swiftui-pipify" */ = {
+		4A6C9D172FC7D0BA00A1C001 /* XCRemoteSwiftPackageReference "AppdbSDK" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/hugeBlack/swiftui-pipify";
+			repositoryURL = "https://github.com/appdb-official/AppdbSDK";
 			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
-		68AD80442E6B65DA00DE9112 /* XCRemoteSwiftPackageReference "Zsign-Package" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/khcrysalis/Zsign-Package/";
-			requirement = {
-				branch = package;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.6.2;
 			};
 		};
 		68D569BC2E1B415700A5BA36 /* XCRemoteSwiftPackageReference "CodeEditorView" */ = {
@@ -1031,47 +712,13 @@
 				minimumVersion = 0.15.4;
 			};
 		};
-		68E714E42E6AA2B00025610F /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/weichsel/ZIPFoundation";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.9.19;
-			};
-		};
-		886F4C362E2260C4001F1410 /* XCRemoteSwiftPackageReference "AppdbSDK" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/appdb-official/AppdbSDK";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
-			};
-		};
-		DCBA85842E3897BD00E88C06 /* XCRemoteSwiftPackageReference "StikImporter" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/StephenDev0/StikImporter";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.2;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		17C744EF2E20BED000834F17 /* Pipify */ = {
+		4A6C9D182FC7D0BA00A1C001 /* AppdbFramework */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 17C744EE2E20BED000834F17 /* XCRemoteSwiftPackageReference "swiftui-pipify" */;
-			productName = Pipify;
-		};
-		68AD80452E6B65DA00DE9112 /* ZsignSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 68AD80442E6B65DA00DE9112 /* XCRemoteSwiftPackageReference "Zsign-Package" */;
-			productName = ZsignSwift;
-		};
-		68AD80472E6B65DA00DE9112 /* zsign */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 68AD80442E6B65DA00DE9112 /* XCRemoteSwiftPackageReference "Zsign-Package" */;
-			productName = zsign;
+			package = 4A6C9D172FC7D0BA00A1C001 /* XCRemoteSwiftPackageReference "AppdbSDK" */;
+			productName = AppdbFramework;
 		};
 		68D569BD2E1B415700A5BA36 /* CodeEditorView */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1082,21 +729,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 68D569BC2E1B415700A5BA36 /* XCRemoteSwiftPackageReference "CodeEditorView" */;
 			productName = LanguageSupport;
-		};
-		68E714E52E6AA2B00025610F /* ZIPFoundation */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 68E714E42E6AA2B00025610F /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
-			productName = ZIPFoundation;
-		};
-		886F4C372E2260C4001F1410 /* AppdbFramework */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 886F4C362E2260C4001F1410 /* XCRemoteSwiftPackageReference "AppdbSDK" */;
-			productName = AppdbFramework;
-		};
-		DCBA85852E3897BD00E88C06 /* StikImporter */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DCBA85842E3897BD00E88C06 /* XCRemoteSwiftPackageReference "StikImporter" */;
-			productName = StikImporter;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

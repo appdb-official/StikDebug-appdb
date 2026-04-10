@@ -7,19 +7,25 @@
 
 import SwiftUI
 import JavaScriptCore
+import idevice
 
-class RunJSViewModel: ObservableObject {
+typealias RemoteServerHandle = OpaquePointer
+typealias ScreenshotClientHandle = OpaquePointer
+
+final class RunJSViewModel: ObservableObject, @unchecked Sendable {
     var context: JSContext?
     @Published var logs: [String] = []
     @Published var scriptName: String = "Script"
     @Published var executionInterrupted = false
     var pid: Int
     var debugProxy: OpaquePointer?
-    var semaphore: dispatch_semaphore_t?
+    var remoteServer: OpaquePointer?
+    var semaphore: DispatchSemaphore?
     
-    init(pid: Int, debugProxy: OpaquePointer?, semaphore: dispatch_semaphore_t?) {
+    init(pid: Int, debugProxy: OpaquePointer?, remoteServer: OpaquePointer?, semaphore: DispatchSemaphore?) {
         self.pid = pid
         self.debugProxy = debugProxy
+        self.remoteServer = remoteServer
         self.semaphore = semaphore
     }
     
@@ -58,6 +64,10 @@ class RunJSViewModel: ObservableObject {
             return handleJITPageWrite(self.context, startAddr, regionSize, self.debugProxy) ?? ""
         }
         
+        let takeScreenshotFunction: @convention(block) (String?) -> String? = { fileName in
+            return self.captureScreenshot(named: fileName)
+        }
+        
         let hasTXMFunction: @convention(block) () -> Bool = {
             return ProcessInfo.processInfo.hasTXM
         }
@@ -67,46 +77,132 @@ class RunJSViewModel: ObservableObject {
         context?.setObject(getPidFunction, forKeyedSubscript: "get_pid" as NSString)
         context?.setObject(sendCommandFunction, forKeyedSubscript: "send_command" as NSString)
         context?.setObject(prepareMemoryRegionFunction, forKeyedSubscript: "prepare_memory_region" as NSString)
+        context?.setObject(takeScreenshotFunction, forKeyedSubscript: "take_screenshot" as NSString)
         context?.setObject(logFunction, forKeyedSubscript: "log" as NSString)
         
         context?.evaluateScript(scriptContent)
         if let semaphore {
             semaphore.signal()
         }
-        
+
         DispatchQueue.main.async {
             if let exception = self.context?.exception {
                 self.logs.append(exception.debugDescription)
             }
-            
             self.logs.append("Script Execution Completed")
-            self.logs.append("You are safe to close the PIP Window.")
+            self.logs.append("You are safe to close this window.")
         }
     }
-}
-
-struct RunJSViewPiP: View {
-    @Binding var model: RunJSViewModel?
-    @State var logs: [String] = []
-    let timer = Timer.publish(every: 0.034, on: .main, in: .common).autoconnect()
     
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            ForEach(logs.suffix(6).indices, id: \.self) { index in
-                Text(logs.suffix(6)[index])
-                    .font(.system(size: 12))
-                    .foregroundStyle(.white)
+    private func captureScreenshot(named preferredName: String?) -> String {
+        if executionInterrupted {
+            raiseException("Script execution is interrupted by StikDebug.")
+            return ""
+        }
+        guard let remoteServer else {
+            raiseException("Screenshot capture is unavailable in the current session.")
+            return ""
+        }
+        
+        var screenshotClient: ScreenshotClientHandle?
+        let creationError = screenshot_client_new(remoteServer, &screenshotClient)
+        if let creationError {
+            let message = describeIdeviceError(creationError)
+            idevice_error_free(creationError)
+            raiseException("Failed to create screenshot client: \(message)")
+            return ""
+        }
+        guard let screenshotClient else {
+            raiseException("Failed to allocate screenshot client.")
+            return ""
+        }
+        defer { screenshot_client_free(screenshotClient) }
+        
+        var buffer: UnsafeMutablePointer<UInt8>?
+        var length: UInt = 0
+        let captureError = screenshot_client_take_screenshot(screenshotClient, &buffer, &length)
+        if let captureError {
+            let message = describeIdeviceError(captureError)
+            idevice_error_free(captureError)
+            raiseException("Failed to take screenshot: \(message)")
+            return ""
+        }
+        guard let buffer else {
+            raiseException("Device returned empty screenshot data.")
+            return ""
+        }
+        defer { idevice_data_free(buffer, length) }
+        
+        let data = Data(bytes: buffer, count: Int(length))
+        do {
+            let fileURL = try screenshotFileURL(preferredName: preferredName)
+            try data.write(to: fileURL, options: .atomic)
+            return fileURL.path
+        } catch {
+            raiseException("Failed to save screenshot: \(error.localizedDescription)")
+            return ""
+        }
+    }
+    
+    private func screenshotFileURL(preferredName: String?) throws -> URL {
+        let directory = URL.documentsDirectory.appendingPathComponent("screenshots", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let fileManager = FileManager.default
+        let initialName = sanitizedScreenshotName(from: preferredName)
+        var targetURL = directory.appendingPathComponent(initialName)
+        guard fileManager.fileExists(atPath: targetURL.path) else {
+            return targetURL
+        }
+        
+        let baseName = targetURL.deletingPathExtension().lastPathComponent
+        let ext = targetURL.pathExtension.isEmpty ? "png" : targetURL.pathExtension
+        var counter = 1
+        repeat {
+            let candidate = "\(baseName)-\(counter).\(ext)"
+            targetURL = directory.appendingPathComponent(candidate)
+            counter += 1
+        } while fileManager.fileExists(atPath: targetURL.path)
+        return targetURL
+    }
+    
+    private func sanitizedScreenshotName(from preferredName: String?) -> String {
+        let defaultName = "screenshot-\(Int(Date().timeIntervalSince1970))"
+        guard let candidate = preferredName?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !candidate.isEmpty else {
+            return "\(defaultName).png"
+        }
+        
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_."))
+        var sanitized = ""
+        sanitized.reserveCapacity(candidate.count)
+        for scalar in candidate.unicodeScalars {
+            if allowed.contains(scalar) {
+                sanitized.append(Character(scalar))
+            } else {
+                sanitized.append("_")
             }
         }
-        .padding()
-        .onReceive(timer) { _ in
-            self.logs = model?.logs ?? []
+        if sanitized.isEmpty {
+            sanitized = defaultName
         }
-        .frame(width: 300, height: 150)
+        if !sanitized.lowercased().hasSuffix(".png") {
+            sanitized += ".png"
+        }
+        return sanitized
+    }
+    
+    private func describeIdeviceError(_ error: UnsafeMutablePointer<IdeviceFfiError>) -> String {
+        if let messagePointer = error.pointee.message {
+            return "[\(error.pointee.code)] \(String(cString: messagePointer))"
+        }
+        return "[\(error.pointee.code)] Unknown error"
+    }
+    
+    private func raiseException(_ message: String) {
+        guard let context else { return }
+        context.exception = JSValue(object: message, in: context)
     }
 }
-
 
 struct RunJSView: View {
     @ObservedObject var model: RunJSViewModel
@@ -120,7 +216,7 @@ struct RunJSView: View {
                 }
             }
             .navigationTitle("Running \(model.scriptName)")
-            .onChange(of: model.logs.count) { newCount in
+            .onChange(of: model.logs.count) { _, newCount in
                 guard newCount > 0 else { return }
                 withAnimation {
                     proxy.scrollTo(newCount - 1, anchor: .bottom)
