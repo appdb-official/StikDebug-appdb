@@ -244,7 +244,7 @@ func exampleUsage() {
  * 1. SDK Setup:
  *    - Add AppdbFramework to Package.swift dependencies
  *    - Import AppdbSDK in relevant files
- *    - Configure app group: "group.to.appdb.jit-ios"
+ *    - Use the same app group as upstream StikDebug: "group.com.stik.stikdebug" (entitlements + UserDefaults suite)
  * 
  * 2. Version Checking Migration:
  *    - Replace GitHub API calls with Appdb.shared.isAppUpdateAvailable(completion:)
@@ -257,13 +257,10 @@ func exampleUsage() {
  *    - Integrate with SwiftUI @StateObject for UI updates
  *    - Add progress indicators and error handling
  * 
- * 4. Bundle ID Changes:
- *    - Update to "to.appdb.jit-ios" format
- *    - Configure proper entitlements
- *    - Test app group functionality
+ * 4. Bundle & signing:
+ *    - Keep upstream bundle id `com.stik.stikdebug` and marketing/build version format (e.g. 3.1.2)
+ *    - Appdb provisioning should match those identifiers; SDK exposes them via getApple*Identifier APIs
  * 
- * 5. Version Naming:
- *    - Follow upstream versions with a-z variants
- *    - Example: upstream "2.0.0" becomes "2.0.0a"
- *    - Maintain compatibility tracking
+ * 5. Version strings:
+ *    - Do not add a/b/c suffixes for appdb; stay aligned with upstream StikDebug versioning
  */
