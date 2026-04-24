@@ -94,8 +94,15 @@ private func writeChecksum(into buffer: inout [UInt8], at startIndex: Int) {
     buffer[index + 2] = hexCharacter(for: checksum & 0x0f)
 }
 
-private func makeBulkWriteCommands(startAddress: UInt64, pageSize: UInt64) -> [UInt8] {
-    let commandCount = Int(pageSize >> 14)
+private let jitPageSize: UInt64 = 16_384
+
+private func jitPageCount(for regionSize: UInt64) -> Int {
+    guard regionSize > 0 else { return 0 }
+    return Int(((regionSize - 1) / jitPageSize) + 1)
+}
+
+private func makeBulkWriteCommands(startAddress: UInt64, regionSize: UInt64) -> [UInt8] {
+    let commandCount = jitPageCount(for: regionSize)
     var buffer = [UInt8](repeating: 0, count: commandCount * 19)
 
     var currentAddress = startAddress
@@ -111,7 +118,7 @@ private func makeBulkWriteCommands(startAddress: UInt64, pageSize: UInt64) -> [U
         buffer[start + 15] = Character("9").asciiValue!
         buffer[start + 16] = Character("#").asciiValue!
         writeChecksum(into: &buffer, at: start + 1)
-        currentAddress += 16_384
+        currentAddress += jitPageSize
     }
 
     return buffer
@@ -123,8 +130,8 @@ func handleJITPageWrite(_ context: JSContext?, _ startAddr: UInt64, _ jitPagesSi
         return nil
     }
 
-    let commandBuffer = makeBulkWriteCommands(startAddress: startAddr, pageSize: jitPagesSize)
-    let commandCount = Int(jitPagesSize >> 14)
+    let commandBuffer = makeBulkWriteCommands(startAddress: startAddr, regionSize: jitPagesSize)
+    let commandCount = jitPageCount(for: jitPagesSize)
     let commandsPerBatch = 128
 
     for batchStart in stride(from: 0, to: commandCount, by: commandsPerBatch) {
