@@ -160,7 +160,6 @@ class AppdbImportManager: ObservableObject {
             DispatchQueue.main.async {
                 self.isImportingFile = true
                 self.importProgress = 0.0
-                startHeartbeatInBackground()
                 let progressTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) {
                     timer in
                     DispatchQueue.main.async {
